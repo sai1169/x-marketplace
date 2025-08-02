@@ -1,5 +1,5 @@
 // fetch items from the backend
-fetch("http://localhost:3000/items")
+fetch("https://x-marketplace-backend.onrender.com/items")
   .then(response => response.json())
   .then(items => {
     const container = document.getElementById("items-container");
@@ -28,7 +28,7 @@ document.getElementById("item-form").addEventListener("submit", function (e) {
     contact: document.getElementById("contact").value,
   };
 
-  fetch("http://localhost:3000/items", {
+fetch("https://x-marketplace-backend.onrender.com/items" {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
