@@ -28,7 +28,7 @@ document.getElementById("item-form").addEventListener("submit", function (e) {
     contact: document.getElementById("contact").value,
   };
 
-fetch("https://x-marketplace-backend.onrender.com/items" {
+  fetch("https://x-marketplace-backend.onrender.com/items", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
