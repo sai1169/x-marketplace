@@ -1,24 +1,34 @@
-// fetch items from the backend
+let allItems = [];
+
+// ✅ Fetch items from the backend
 fetch("https://x-marketplace.onrender.com/items")
   .then(response => response.json())
   .then(items => {
-    const container = document.getElementById("items-container");
-
-    items.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "item-card";
-      card.innerHTML = `
-        <h3>${item.title}</h3>
-        <p>Price: ${item.price}</p>
-        <a href="${item.contact}" target="_blank">Contact Seller</a>
-      `;
-      container.appendChild(card);
-    });
+    allItems = items;
+    renderItems(allItems);
   })
   .catch(error => {
     console.error("❌ Failed to fetch items:", error);
   });
-// handle form submission
+
+// ✅ Render items to the page
+function renderItems(items) {
+  const container = document.getElementById("items-container");
+  container.innerHTML = ""; // clear previous cards
+
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.innerHTML = `
+      <h3>${item.title}</h3>
+      <p>Price: ${item.price}</p>
+      <a href="${item.contact}" target="_blank">Contact Seller</a>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ✅ Handle form submission
 document.getElementById("item-form").addEventListener("submit", function (e) {
   e.preventDefault();
 
@@ -45,3 +55,25 @@ document.getElementById("item-form").addEventListener("submit", function (e) {
       alert("Failed to add item. Try again.");
     });
 });
+
+// ✅ Filter: Show all items
+function showAll() {
+  renderItems(allItems);
+}
+
+// ✅ Filter: Show only free items
+function showFree() {
+  const freeItems = allItems.filter(item =>
+    item.price.toLowerCase().includes("free")
+  );
+  renderItems(freeItems);
+}
+
+// ✅ Filter: Show items under ₹200
+function showUnder200() {
+  const filtered = allItems.filter(item => {
+    const num = parseInt(item.price.replace(/[^0-9]/g, ""));
+    return !isNaN(num) && num <= 200;
+  });
+  renderItems(filtered);
+}

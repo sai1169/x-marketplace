@@ -17,21 +17,32 @@
   </header>
 
   <main>
+
+    <!-- ✅ Filter buttons -->
+    <section id="filters">
+      <h3>Filter Items</h3>
+      <button onclick="showAll()">Show All</button>
+      <button onclick="showFree()">Free Items</button>
+      <button onclick="showUnder200()">Under ₹200</button>
+    </section>
+
     <section id="item-list">
       <h2>All Items</h2>
       <div id="items-container">
         <!-- Item cards will be added here dynamically -->
       </div>
     </section>
+
     <section id="add-item">
-  <h2>Add a New Item</h2>
-  <form id="item-form">
-    <input type="text" id="title" placeholder="Item Name" required />
-    <input type="text" id="price" placeholder="Price (e.g., ₹100 or Free)" required />
-    <input type="text" id="contact" placeholder="WhatsApp/Email Link" required />
-    <button type="submit">Add Item</button>
-  </form>
-</section>
+      <h2>Add a New Item</h2>
+      <form id="item-form">
+        <input type="text" id="title" placeholder="Item Name" required />
+        <input type="text" id="price" placeholder="Price (e.g., ₹100 or Free)" required />
+        <input type="text" id="contact" placeholder="WhatsApp/Email Link" required />
+        <button type="submit">Add Item</button>
+      </form>
+    </section>
+
   </main>
 
   <footer>
