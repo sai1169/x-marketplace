@@ -36,6 +36,7 @@ document.getElementById("item-form").addEventListener("submit", function (e) {
     title: document.getElementById("title").value,
     price: document.getElementById("price").value,
     contact: document.getElementById("contact").value,
+    category: document.getElementById("category").value
   };
 
   fetch("https://x-marketplace.onrender.com/items", {
@@ -83,6 +84,18 @@ function searchItems() {
   const query = document.getElementById("searchInput").value.toLowerCase();
   const filtered = allItems.filter(item =>
     item.title.toLowerCase().includes(query)
+  );
+  renderItems(filtered);
+}
+function filterByCategory() {
+  const selected = document.getElementById("categoryFilter").value;
+  if (!selected) {
+    renderItems(allItems);
+    return;
+  }
+
+  const filtered = allItems.filter(item =>
+    item.category && item.category.toLowerCase() === selected.toLowerCase()
   );
   renderItems(filtered);
 }

@@ -17,18 +17,30 @@
   </header>
 
   <main>
+    <!-- 🔍 Search Bar -->
     <section id="search">
       <input type="text" id="searchInput" placeholder="Search items by name..." oninput="searchItems()" />
     </section>
 
-    <!-- ✅ Filter buttons -->
+    <!-- 🧠 Filter Buttons + Category Dropdown -->
     <section id="filters">
       <h3>Filter Items</h3>
       <button onclick="showAll()">Show All</button>
       <button onclick="showFree()">Free Items</button>
       <button onclick="showUnder200()">Under ₹200</button>
+
+      <!-- ✅ Category Dropdown -->
+      <select id="categoryFilter" onchange="filterByCategory()">
+        <option value="">Filter by Category</option>
+        <option value="Books">Books</option>
+        <option value="Notes">Notes</option>
+        <option value="Tools">Tools</option>
+        <option value="Lab">Lab Items</option>
+        <option value="Free">Free</option>
+      </select>
     </section>
 
+    <!-- 📦 Item List -->
     <section id="item-list">
       <h2>All Items</h2>
       <div id="items-container">
@@ -36,12 +48,24 @@
       </div>
     </section>
 
+    <!-- ➕ Add New Item Form -->
     <section id="add-item">
       <h2>Add a New Item</h2>
       <form id="item-form">
         <input type="text" id="title" placeholder="Item Name" required />
         <input type="text" id="price" placeholder="Price (e.g., ₹100 or Free)" required />
         <input type="text" id="contact" placeholder="WhatsApp/Email Link" required />
+
+        <!-- ✅ Add Category Field -->
+        <select id="category" required>
+          <option value="" disabled selected>Select Category</option>
+          <option value="Books">Books</option>
+          <option value="Notes">Notes</option>
+          <option value="Tools">Tools</option>
+          <option value="Lab">Lab Items</option>
+          <option value="Free">Free</option>
+        </select>
+
         <button type="submit">Add Item</button>
       </form>
     </section>

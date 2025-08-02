@@ -20,7 +20,8 @@ mongoose.connect(process.env.MONGO_URI, {
 const itemSchema = new mongoose.Schema({
   title: String,
   price: String,
-  contact: String
+  contact: String,
+  category: String
 });
 
 const Item = mongoose.model("Item", itemSchema);
@@ -34,6 +35,7 @@ app.get("/items", async (req, res) => {
 app.post("/items", async (req, res) => {
   const newItem = new Item(req.body);
   await newItem.save();
+  console.log("✅ Item saved to DB:", newItem); // ← Add this
   res.json({ message: "Item saved", item: newItem });
 });
 
