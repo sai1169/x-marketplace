@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>X-Marketplace</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>X-Marketplace</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Add Item</a>
+      <a href="#">Free Items</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="item-list">
+      <h2>All Items</h2>
+      <div id="items-container">
+        <!-- Item cards will be added here dynamically -->
+      </div>
+    </section>
+    <section id="add-item">
+  <h2>Add a New Item</h2>
+  <form id="item-form">
+    <input type="text" id="title" placeholder="Item Name" required />
+    <input type="text" id="price" placeholder="Price (e.g., ₹100 or Free)" required />
+    <input type="text" id="contact" placeholder="WhatsApp/Email Link" required />
+    <button type="submit">Add Item</button>
+  </form>
+</section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 X-Marketplace. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
