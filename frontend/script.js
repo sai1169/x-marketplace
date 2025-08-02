@@ -77,3 +77,12 @@ function showUnder200() {
   });
   renderItems(filtered);
 }
+
+// ✅ Filter by search input
+function searchItems() {
+  const query = document.getElementById("searchInput").value.toLowerCase();
+  const filtered = allItems.filter(item =>
+    item.title.toLowerCase().includes(query)
+  );
+  renderItems(filtered);
+}
