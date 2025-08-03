@@ -48,7 +48,7 @@
       </div>
     </section>
 
-    <!-- ➕ Add New Item Form -->
+    <!-- ➕ Add New Item Form. -->
     <section id="add-item">
       <h2>Add a New Item</h2>
       <form id="item-form">
@@ -56,6 +56,8 @@
         <input type="text" id="price" placeholder="Price (e.g., ₹100 or Free)" required />
         <input type="text" id="contact" placeholder="WhatsApp/Email Link" required />
         <input type="file" id="image" accept="image/*" required />
+        <input type="file" id="image" accept="image/*" required onchange="previewImage(event)" />
+        <img id="preview" style="max-width: 100%; margin-top: 10px; display: none;" />
         
         <!-- ✅ Add Category Field -->
         <select id="category" required>
