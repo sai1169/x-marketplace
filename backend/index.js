@@ -7,10 +7,16 @@ const cloudinary = require("cloudinary").v2;
 const basicAuth = require('express-basic-auth');
 require("dotenv").config();
 
-const app = express();
-app.use(cors());
-app.use(express.json());
 
+app.use('/admin', basicAuth({
+  users: { 'admin': process.env.ADMIN_PASSWORD },
+  challenge: true,
+}));
+
+// Then define the route
+app.get('/admin', (req, res) => {
+  res.send('Welcome to the admin panel!');
+});
 const PORT = 3000;
 
 // MongoDB Connection
@@ -44,8 +50,10 @@ const itemSchema = new mongoose.Schema({
   price: String,
   contact: String,
   category: String,
-  images: [String], // ✅ Array of image URLs
+  images: [String],
   timestamp: Number,
+  apronSize: String,     // 👈 new
+  apronColor: String     // 👈 new
 });
 
 const Item = mongoose.model("Item", itemSchema);
@@ -59,7 +67,7 @@ app.get("/items", async (req, res) => {
 // POST item with multiple images
 app.post("/items", upload.array("images", 5), async (req, res) => {
   try {
-    const { title, price, contact, category, timestamp } = req.body;
+    const { title, price, contact, category, timestamp, apronSize, apronColor } = req.body;
 
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: "No images uploaded" });
@@ -74,6 +82,8 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
       category,
       images: imageUrls,
       timestamp: timestamp || Date.now(),
+      apronSize: category === "Aprons" ? apronSize : undefined,
+      apronColor: category === "Aprons" ? apronColor : undefined
     });
 
     await newItem.save();
@@ -90,11 +100,3 @@ app.listen(PORT, () => {
 });
 
 
-app.use('/admin', basicAuth({
-  users: { 'admin': process.env.ADMIN_PASSWORD },
-  challenge: true,
-}));
-
-app.get('/admin', (req, res) => {
-  res.send('Welcome to the admin panel!');
-});

@@ -698,3 +698,30 @@ window.addEventListener('unhandledrejection', (e) => {
   console.error('Unhandled promise rejection:', e.reason);
   showNotification('Something went wrong. Please try again.', 'error');
 });
+
+const category = document.getElementById('category');
+const apronOptions = document.getElementById('apronOptions');
+
+category.addEventListener('change', () => {
+  if (category.value === 'Aprons') {
+    apronOptions.style.display = 'block';
+  } else {
+    apronOptions.style.display = 'none';
+  }
+});
+
+if (category.value === 'Aprons') {
+  const apronSize = document.getElementById("apronSize");
+  const apronColor = document.getElementById("apronColor");
+
+  const sizeValid = validateInput(apronSize, v => v !== '', document.getElementById('apronSizeError'), 'Please select a size');
+  const colorValid = validateInput(apronColor, v => v !== '', document.getElementById('apronColorError'), 'Please select a color');
+
+  if (!sizeValid || !colorValid) {
+    showNotification("Please fill size and color for aprons", "error");
+    return;
+  }
+
+  formData.append("apronSize", apronSize.value);
+  formData.append("apronColor", apronColor.value);
+}
