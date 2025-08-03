@@ -662,19 +662,33 @@ body {
     font-size: var(--font-size-xl);
   }
 }
-.item-card img {
+
+.image-wrapper {
+  position: relative;
   width: 100%;
   height: 200px;
-  object-fit: cover;
-  transition: all 0.3s ease;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
 }
 
-.item-card:hover img {
-  height: auto; /* Allow image to expand */
-  max-height: 400px; /* Limit max height for control */
+.image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.4s ease;
+  display: block;
+}
+
+/* Hover effect: show full image */
+.item-card:hover .image-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: auto;
+  width: 100%;
   object-fit: contain;
-  background-color: #f8fafc; /* Optional: fallback background */
-  transform: scale(1.02);
-  z-index: 10;
-  position: relative;
+  background: #fff;
+  padding: 8px;
+  z-index: 99;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
