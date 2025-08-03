@@ -13,7 +13,6 @@
       <nav class="nav">
         <a href="#item-list" class="nav-link">Browse</a>
         <a href="#add-item" class="nav-link">Sell Item</a>
-        <a href="#" class="nav-link" onclick="showFree()">Free Stuff</a>
         <div class="theme-toggle" id="themeToggle">
           <span class="theme-icon sun">☀️</span>
           <span class="theme-icon moon">🌙</span>
@@ -25,110 +24,151 @@
   <main class="main">
     <!-- Search -->
     <section id="search" class="search-section">
-      <input 
-        type="text" 
-        id="searchInput" 
-        class="search-input"
-        placeholder="Search items..." 
-        oninput="searchItems()" 
-        aria-label="Search items"
-      />
+      <div class="search-container">
+        <div class="search-icon">🔍</div>
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input"
+          placeholder="Search items..." 
+          oninput="searchItems()" 
+          aria-label="Search items"
+        />
+        <div class="search-clear" id="searchClear" onclick="clearSearch()" style="display: none;">✕</div>
+      </div>
     </section>
 
-    <!-- Filters -->
+    <!-- Filters & Sort -->
     <section id="filters" class="filters-section">
-      <h3 class="filters-title">Filter Items</h3>
-      <div class="filter-buttons">
-        <button onclick="showAll()" class="filter-btn active">All Items</button>
-        <button onclick="showFree()" class="filter-btn">Free Items</button>
+      <div class="filters-header">
+        <h3 class="filters-title">Filter & Sort</h3>
+        <div class="sort-container">
+          <select id="sortSelect" class="sort-select" onchange="sortItems()" aria-label="Sort items">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+          </select>
+        </div>
       </div>
-      <select id="categoryFilter" class="category-select" onchange="filterByCategory()" aria-label="Filter by category">
-        <option value="">All Categories</option>
-        <option value="Aprons">Aprons</option>
-        <option value="Books">Books</option>
-        <option value="Notes">Notes</option>
-        <option value="Tools">Tools</option>
-        <option value="Lab">Lab Items</option>
-        <option value="Free">Free</option>
-      </select>
+      
+      <div class="filter-controls">
+        <div class="filter-buttons">
+          <button onclick="showAll()" class="filter-btn active">All Items</button>
+          <button onclick="showFree()" class="filter-btn">Free Items</button>
+        </div>
+        <select id="categoryFilter" class="category-select" onchange="filterByCategory()" aria-label="Filter by category">
+          <option value="">All Categories</option>
+          <option value="Aprons">Aprons</option>
+          <option value="Books">Books</option>
+          <option value="Notes">Notes</option>
+          <option value="Tools">Tools</option>
+          <option value="Lab">Lab Items</option>
+          <option value="Free">Free</option>
+        </select>
+      </div>
     </section>
 
     <!-- Items -->
     <section id="item-list" class="items-section">
-      <h2 class="section-title">Available Items</h2>
+      <div class="section-header">
+        <h2 class="section-title">Available Items</h2>
+        <div class="items-count" id="itemsCount">Loading...</div>
+      </div>
       <div id="items-container" class="items-grid">
-        <div class="loading">
-          <div class="spinner"></div>
-        </div>
+        <!-- Skeleton loaders will be inserted here -->
       </div>
     </section>
 
     <!-- Add Item -->
     <section id="add-item" class="add-item-section">
-      <h2 class="section-title">📦 List Your Item</h2>
-      <form id="item-form">
-        <div class="form-group">
-          <label class="form-label" for="title">Item Name</label>
-          <input type="text" id="title" class="form-input" placeholder="Enter item name" required />
-          <div class="error-message" id="titleError">Please enter a valid item name</div>
+      <div class="section-header">
+        <h2 class="section-title">📦 List Your Item</h2>
+        <p class="section-subtitle">Share your items with fellow students</p>
+      </div>
+      
+      <form id="item-form" class="item-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="title">Item Name</label>
+            <input type="text" id="title" class="form-input" placeholder="Enter item name" required />
+            <div class="error-message" id="titleError">Please enter a valid item name</div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="price">Price (₹0 for Free)</label>
+            <input type="number" id="price" class="form-input" placeholder="0" required />
+            <div class="error-message" id="priceError">Please enter a valid price</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="contact">Contact (WhatsApp or Email)</label>
+            <input type="text" id="contact" class="form-input" placeholder="9876543210 or email@example.com" required />
+            <div class="error-message" id="contactError">Please enter a valid 10-digit phone number or email</div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="category">Category</label>
+            <select id="category" class="form-select" required>
+              <option value="" disabled selected>Select Category</option>
+              <option value="Aprons">Aprons</option>
+              <option value="Books">Books</option>
+              <option value="Notes">Notes</option>
+              <option value="Tools">Tools</option>
+              <option value="Lab">Lab Items</option>
+              <option value="Free">Free</option>
+            </select>
+            <div class="error-message" id="categoryError">Please select a category</div>
+          </div>
         </div>
         
         <div class="form-group">
-          <label class="form-label" for="price">Price (₹0 for Free)</label>
-          <input type="number" id="price" class="form-input" placeholder="0" required />
-          <div class="error-message" id="priceError">Please enter a valid price</div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label" for="contact">Contact (WhatsApp or Email)</label>
-          <input type="text" id="contact" class="form-input" placeholder="9876543210 or email@example.com" required />
-          <div class="error-message" id="contactError">Please enter a valid 10-digit phone number or email</div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label" for="category">Category</label>
-          <select id="category" class="form-select" required>
-            <option value="" disabled selected>Select Category</option>
-            <option value="Aprons">Aprons</option>
-            <option value="Books">Books</option>
-            <option value="Notes">Notes</option>
-            <option value="Tools">Tools</option>
-            <option value="Lab">Lab Items</option>
-            <option value="Free">Free</option>
-          </select>
-          <div class="error-message" id="categoryError">Please select a category</div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Image</label>
+          <label class="form-label">Item Images</label>
           <div class="file-input-wrapper">
-            <input type="file" id="image" class="file-input" accept="image/*" required onchange="previewImage(event)" />
+            <input type="file" id="image" class="file-input" accept="image/*" required onchange="previewImage(event)" multiple />
             <div class="file-input-display">
               <div class="file-input-icon">📷</div>
-              <div class="file-input-text">Click to upload image</div>
+              <div class="file-input-text">Click to upload images</div>
+              <div class="file-input-subtext">Support multiple images</div>
             </div>
           </div>
-          <img id="preview" class="image-preview" style="display: none;" alt="Item preview" />
-          <div class="error-message" id="imageError">Please select an image</div>
+          <div id="imagePreviewContainer" class="image-preview-container"></div>
+          <div class="error-message" id="imageError">Please select at least one image</div>
         </div>
         
         <button type="submit" class="submit-btn">
-          <span>🚀</span>
-          List Item
+          <span class="submit-icon">🚀</span>
+          <span class="submit-text">List Item</span>
         </button>
       </form>
     </section>
   </main>
 
   <footer class="footer">
-    <p>&copy; 2025 X-Marketplace. Built with gunde noppi. 🎓</p>
+    <div class="footer-content">
+      <p>&copy; 2025 X-Marketplace. Built with gunde noppi. 🎓</p>
+    </div>
   </footer>
 
-  <script src="script.js"></script>
   <!-- Image Modal -->
-<div id="imageModal" class="image-modal">
-  <span class="modal-close" onclick="closeModal()">&times;</span>
-  <img class="modal-content" id="modalImg" alt="Full Image">
-</div>
+  <div id="imageModal" class="image-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()" aria-label="Close modal">✕</button>
+      <div class="modal-header">
+        <h3 id="modalTitle" class="modal-title">Item Images</h3>
+        <div id="modalCounter" class="modal-counter">1 / 1</div>
+      </div>
+      <div class="modal-body">
+        <button class="modal-nav prev" onclick="previousImage()" aria-label="Previous image">‹</button>
+        <img class="modal-image" id="modalImg" alt="Full Image">
+        <button class="modal-nav next" onclick="nextImage()" aria-label="Next image">›</button>
+      </div>
+      <div class="modal-thumbnails" id="modalThumbnails"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
