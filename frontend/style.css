@@ -662,3 +662,19 @@ body {
     font-size: var(--font-size-xl);
   }
 }
+.item-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.item-card:hover img {
+  height: auto; /* Allow image to expand */
+  max-height: 400px; /* Limit max height for control */
+  object-fit: contain;
+  background-color: #f8fafc; /* Optional: fallback background */
+  transform: scale(1.02);
+  z-index: 10;
+  position: relative;
+}
