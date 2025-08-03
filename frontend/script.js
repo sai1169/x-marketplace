@@ -20,8 +20,9 @@ function renderItems(items) {
     const card = document.createElement("div");
     card.className = "item-card";
     card.innerHTML = `
-      <img src="${item.imageUrl}" alt="${item.title}" class="item-image" />
+      ${item.imageUrl ? `<img src="${item.imageUrl}" class="item-image" alt="${item.title}"/>` : ''}
       <h3>${item.title}</h3>
+      <p>Category: ${item.category}</p>
       <p>Price: ${item.price}</p>
       <a href="${item.contact}" target="_blank">Contact Seller</a>
     `;
