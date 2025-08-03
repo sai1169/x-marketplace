@@ -1,166 +1,134 @@
 let allItems = [];
 
-// Fetch items from the backend
+// Theme toggle
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("themeToggle");
+  const isDark = localStorage.getItem("theme") === "dark";
+  document.body.classList.toggle("dark", isDark);
+  toggle.checked = isDark;
+
+  toggle.addEventListener("change", () => {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+  });
+});
+
+// Fetch and render
 fetch("https://x-marketplace.onrender.com/items")
-  .then(response => response.json())
-  .then(items => {
-    allItems = items;
+  .then(res => res.json())
+  .then(data => {
+    allItems = data;
     renderItems(allItems);
   })
-  .catch(error => {
-    console.error("❌ Failed to fetch items:", error);
-    document.getElementById("items-container").innerHTML = `
-      <div class="empty-state">
-        <h3>Unable to load items</h3>
-        <p>Please check your connection and try again.</p>
-      </div>
-    `;
+  .catch(err => {
+    console.error("❌ Fetch error:", err);
+    document.getElementById("items-container").innerHTML = `<div class="empty-state"><h3>Unable to load items</h3></div>`;
   });
 
-// Render items to the page
 function renderItems(items) {
   const container = document.getElementById("items-container");
-  
-  if (items.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <h3>No items found</h3>
-        <p>Try adjusting your search or filters, or be the first to add an item!</p>
-      </div>
-    `;
+  container.innerHTML = "";
+
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state"><h3>No items found</h3></div>`;
     return;
   }
-
-  container.innerHTML = "";
 
   items.forEach(item => {
     const card = document.createElement("div");
     card.className = "item-card";
     card.innerHTML = `
-      ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.title}" loading="lazy"/>` : ''}
+      ${item.imageUrl ? `<div class="img-wrapper"><img src="${item.imageUrl}" alt="${item.title}" /></div>` : ""}
       <div class="item-card-content">
-        <div class="category">${item.category || 'Other'}</div>
+        <div class="category">${item.category || "Other"}</div>
         <h3>${item.title}</h3>
-        <div class="price">${item.price}</div>
-        <a href="${item.contact}" target="_blank" class="contact-btn" rel="noopener noreferrer">
-          💬 Contact Seller
-        </a>
+        <div class="price">${item.price == 0 ? "Free" : item.price}</div>
+        <a href="${formatContact(item.contact)}" target="_blank" class="contact-btn">Contact Seller</a>
       </div>
     `;
     container.appendChild(card);
   });
 }
 
-// Handle form submission
-document.getElementById("item-form").addEventListener("submit", function (e) {
+function formatContact(contact) {
+  if (/^\d{10}$/.test(contact)) return `https://wa.me/91${contact}`;
+  return `mailto:${contact}`;
+}
+
+// Filters
+function showAll() {
+  updateActiveFilter(event.target);
+  renderItems(allItems);
+}
+function showFree() {
+  updateActiveFilter(event.target);
+  renderItems(allItems.filter(i => i.price == 0 || i.price.toLowerCase?.().includes("free")));
+}
+function filterByCategory() {
+  const value = document.getElementById("categoryFilter").value;
+  renderItems(value ? allItems.filter(i => i.category?.toLowerCase() === value.toLowerCase()) : allItems);
+}
+function searchItems() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  renderItems(allItems.filter(i =>
+    i.title?.toLowerCase().includes(q) || i.category?.toLowerCase().includes(q)
+  ));
+}
+function updateActiveFilter(btn) {
+  document.querySelectorAll("#filters button").forEach(b => b.classList.remove("active"));
+  btn?.classList.add("active");
+}
+
+// Form Submit
+document.getElementById("item-form").addEventListener("submit", e => {
   e.preventDefault();
-  
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn.textContent;
-  submitBtn.textContent = '⏳ Uploading...';
-  submitBtn.disabled = true;
+
+  const title = document.getElementById("title").value.trim();
+  const price = +document.getElementById("price").value.trim();
+  const contact = document.getElementById("contact").value.trim();
+  const category = document.getElementById("category").value;
+  const image = document.getElementById("image").files[0];
+
+  if (!/^\d{10}$/.test(contact) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) {
+    alert("Enter valid 10-digit phone number or email.");
+    return;
+  }
+
+  if (isNaN(price) || price < 0) {
+    alert("Enter a valid price (0 for Free).");
+    return;
+  }
 
   const formData = new FormData();
-  formData.append("title", document.getElementById("title").value);
-  formData.append("price", document.getElementById("price").value);
-  formData.append("contact", document.getElementById("contact").value);
-  formData.append("category", document.getElementById("category").value);
-  formData.append("image", document.getElementById("image").files[0]);
+  formData.append("title", title);
+  formData.append("price", price == 0 ? "Free" : `₹${price}`);
+  formData.append("contact", contact);
+  formData.append("category", category);
+  formData.append("image", image);
 
   fetch("https://x-marketplace.onrender.com/items", {
     method: "POST",
     body: formData,
   })
     .then(res => res.json())
-    .then(data => {
-      alert("✅ Item uploaded successfully!");
+    .then(() => {
+      alert("✅ Item uploaded!");
       document.getElementById("item-form").reset();
       document.getElementById("preview").style.display = "none";
       window.location.reload();
     })
     .catch(err => {
-      console.error("❌ Upload failed:", err);
-      alert("❌ Upload failed. Please try again.");
-    })
-    .finally(() => {
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
+      console.error(err);
+      alert("❌ Upload failed.");
     });
 });
 
-// Filter functions
-function showAll() {
-  updateActiveFilter(event.target);
-  renderItems(allItems);
-}
-
-function showFree() {
-  updateActiveFilter(event.target);
-  const freeItems = allItems.filter(item =>
-    item.price.toLowerCase().includes("free")
-  );
-  renderItems(freeItems);
-}
-
-function showUnder200() {
-  updateActiveFilter(event.target);
-  const filtered = allItems.filter(item => {
-    const num = parseInt(item.price.replace(/[^0-9]/g, ""));
-    return !isNaN(num) && num <= 200;
-  });
-  renderItems(filtered);
-}
-
-function searchItems() {
-  const query = document.getElementById("searchInput").value.toLowerCase();
-  const filtered = allItems.filter(item =>
-    item.title.toLowerCase().includes(query) ||
-    (item.category && item.category.toLowerCase().includes(query))
-  );
-  renderItems(filtered);
-}
-
-function filterByCategory() {
-  const selected = document.getElementById("categoryFilter").value;
-  if (!selected) {
-    renderItems(allItems);
-    return;
-  }
-
-  const filtered = allItems.filter(item =>
-    item.category && item.category.toLowerCase() === selected.toLowerCase()
-  );
-  renderItems(filtered);
-}
-
-function updateActiveFilter(activeButton) {
-  // Remove active class from all filter buttons
-  document.querySelectorAll('#filters button').forEach(btn => 
-    btn.classList.remove('active')
-  );
-  // Add active class to clicked button
-  if (activeButton) {
-    activeButton.classList.add('active');
-  }
-}
-
-function previewImage(event) {
+// Image preview
+function previewImage(e) {
+  const file = e.target.files[0];
   const preview = document.getElementById("preview");
-  const file = event.target.files[0];
-  
   if (file) {
     preview.src = URL.createObjectURL(file);
     preview.style.display = "block";
   }
 }
-
-// Add smooth scroll behavior for navigation links
-document.querySelectorAll('nav a[href^="#"]').forEach(link => {
-  link.addEventListener('click', function(e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
-  });
-});

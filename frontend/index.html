@@ -5,46 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>X-Marketplace</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    :root {
-      --bg-light: #f8fafc;
-      --bg-dark: #1e293b;
-      --text-light: #1e293b;
-      --text-dark: #f1f5f9;
-      --card-bg-light: #ffffff;
-      --card-bg-dark: #334155;
-    }
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: var(--bg-dark);
-        color: var(--text-dark);
-      }
-      header,
-      footer,
-      .item-card,
-      #filters,
-      #add-item {
-        background-color: var(--card-bg-dark);
-        color: var(--text-dark);
-      }
-      nav a {
-        color: var(--text-dark);
-      }
-    }
-    @media (max-width: 600px) {
-      #items-container {
-        grid-template-columns: 1fr !important;
-      }
-      .header-container {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-    }
-    .item-card img:hover {
-      object-fit: contain;
-    }
-  </style>
 </head>
 <body>
   <header>
@@ -54,21 +14,27 @@
         <a href="#item-list">Browse</a>
         <a href="#add-item">Sell Item</a>
         <a href="#" onclick="showFree()">Free Stuff</a>
+        <label class="theme-toggle">
+          <input type="checkbox" id="themeToggle" />
+          <span>🌙</span>
+        </label>
       </nav>
     </div>
   </header>
 
   <main>
+    <!-- Search -->
     <section id="search">
       <input 
         type="text" 
         id="searchInput" 
-        placeholder="Search for books, notes, calculators..." 
-        oninput="searchItems()"
+        placeholder="Search items..." 
+        oninput="searchItems()" 
         aria-label="Search items"
       />
     </section>
 
+    <!-- Filters -->
     <section id="filters">
       <h3>Filter Items</h3>
       <div class="filter-buttons">
@@ -86,6 +52,7 @@
       </div>
     </section>
 
+    <!-- Items -->
     <section id="item-list">
       <h2>Available Items</h2>
       <div id="items-container">
@@ -95,40 +62,16 @@
       </div>
     </section>
 
+    <!-- Add Item -->
     <section id="add-item">
-      <h2>List Your Item</h2>
+      <h2>📦 List Your Item</h2>
       <form id="item-form">
-        <input 
-          type="text" 
-          id="title" 
-          placeholder="Item name" 
-          required 
-          aria-label="Item name"
-        />
-        <input 
-          type="number" 
-          id="price" 
-          placeholder="Price (₹0 = Free)" 
-          required 
-          aria-label="Item price"
-        />
-        <input 
-          type="text" 
-          id="contact" 
-          placeholder="WhatsApp number or email" 
-          required 
-          aria-label="Contact information"
-        />
-        <input 
-          type="file" 
-          id="image" 
-          accept="image/*" 
-          required 
-          onchange="previewImage(event)"
-          aria-label="Item photo"
-        />
-        <img id="preview" style="display: none; max-height: 200px; object-fit: cover;" alt="Item preview" />
-        <select id="category" required aria-label="Item category">
+        <input type="text" id="title" placeholder="Item name" required />
+        <input type="number" id="price" placeholder="Price (₹0 for Free)" required />
+        <input type="text" id="contact" placeholder="WhatsApp number or email" required />
+        <input type="file" id="image" accept="image/*" required onchange="previewImage(event)" />
+        <img id="preview" style="display: none;" alt="Item preview" />
+        <select id="category" required>
           <option value="" disabled selected>Select Category</option>
           <option value="Aprons">Aprons</option>
           <option value="Books">Books</option>
@@ -137,45 +80,15 @@
           <option value="Lab">Lab Items</option>
           <option value="Free">Free</option>
         </select>
-        <button type="submit">List Item</button>
+        <button type="submit">🚀 List Item</button>
       </form>
     </section>
   </main>
 
   <footer>
-    <p>&copy; 2025 X-Marketplace. Built with gunde noppi.</p>
+    <p>&copy; 2025 X-Marketplace. Built with gunde noppi. 🎓</p>
   </footer>
 
-  <script>
-    // Validate price and contact
-    document.getElementById("item-form").addEventListener("submit", function (e) {
-      const price = parseInt(document.getElementById("price").value);
-      const contact = document.getElementById("contact").value.trim();
-      const phoneRegex = /^\d{10}$/;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (isNaN(price)) {
-        alert("❌ Price must be a number (0 for Free).");
-        e.preventDefault();
-        return;
-      }
-
-      if (!(phoneRegex.test(contact) || emailRegex.test(contact))) {
-        alert("❌ Enter a valid 10-digit phone number or email address.");
-        e.preventDefault();
-        return;
-      }
-
-      if (phoneRegex.test(contact)) {
-        document.getElementById("contact").value = `https://wa.me/91${contact}`;
-      }
-    });
-  </script>
-
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-  </script>
-  <script defer src="/_vercel/insights/script.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
