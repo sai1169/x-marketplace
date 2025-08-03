@@ -20,6 +20,7 @@ function renderItems(items) {
     const card = document.createElement("div");
     card.className = "item-card";
     card.innerHTML = `
+      <img src="${item.imageUrl}" alt="${item.title}" class="item-image" />
       <h3>${item.title}</h3>
       <p>Price: ${item.price}</p>
       <a href="${item.contact}" target="_blank">Contact Seller</a>
@@ -32,28 +33,25 @@ function renderItems(items) {
 document.getElementById("item-form").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const newItem = {
-    title: document.getElementById("title").value,
-    price: document.getElementById("price").value,
-    contact: document.getElementById("contact").value,
-    category: document.getElementById("category").value
-  };
+  const formData = new FormData();
+  formData.append("title", document.getElementById("title").value);
+  formData.append("price", document.getElementById("price").value);
+  formData.append("contact", document.getElementById("contact").value);
+  formData.append("category", document.getElementById("category").value);
+  formData.append("image", document.getElementById("image").files[0]);
 
   fetch("https://x-marketplace.onrender.com/items", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(newItem),
+    body: formData,
   })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-      alert("✅ Item added successfully!");
-      window.location.reload(); // refresh to show new item
+      alert("✅ Item uploaded!");
+      window.location.reload();
     })
-    .catch(error => {
-      console.error("❌ Failed to add item:", error);
-      alert("Failed to add item. Try again.");
+    .catch(err => {
+      console.error("❌ Upload failed:", err);
+      alert("Upload failed.");
     });
 });
 

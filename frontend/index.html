@@ -55,7 +55,8 @@
         <input type="text" id="title" placeholder="Item Name" required />
         <input type="text" id="price" placeholder="Price (e.g., ₹100 or Free)" required />
         <input type="text" id="contact" placeholder="WhatsApp/Email Link" required />
-
+        <input type="file" id="image" accept="image/*" required />
+        
         <!-- ✅ Add Category Field -->
         <select id="category" required>
           <option value="" disabled selected>Select Category</option>
@@ -65,7 +66,6 @@
           <option value="Lab">Lab Items</option>
           <option value="Free">Free</option>
         </select>
-
         <button type="submit">Add Item</button>
       </form>
     </section>
