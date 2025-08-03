@@ -4,6 +4,7 @@ const cors = require("cors");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
+const basicAuth = require('express-basic-auth');
 require("dotenv").config();
 
 const app = express();
@@ -86,4 +87,14 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
+});
+
+
+app.use('/admin', basicAuth({
+  users: { 'admin': process.env.ADMIN_PASSWORD },
+  challenge: true,
+}));
+
+app.get('/admin', (req, res) => {
+  res.send('Welcome to the admin panel!');
 });
