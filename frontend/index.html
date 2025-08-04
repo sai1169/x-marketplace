@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>X-Marketplace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -64,6 +67,7 @@
           <option value="Notes">Notes</option>
           <option value="Tools">Tools</option>
           <option value="Lab">Lab Items</option>
+          <option value="Other">Other</option>
           <option value="Free">Free</option>
         </select>
       </div>
@@ -111,16 +115,60 @@
           
           <div class="form-group">
             <label class="form-label" for="category">Category</label>
-            <select id="category" class="form-select" required>
+            <select id="category" class="form-select" required onchange="handleCategoryChange()">
               <option value="" disabled selected>Select Category</option>
               <option value="Aprons">Aprons</option>
               <option value="Books">Books</option>
               <option value="Notes">Notes</option>
               <option value="Tools">Tools</option>
               <option value="Lab">Lab Items</option>
+              <option value="Other">Other</option>
               <option value="Free">Free</option>
             </select>
             <div class="error-message" id="categoryError">Please select a category</div>
+          </div>
+        </div>
+
+        <!-- Category Description Field -->
+        <div class="form-group">
+          <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
+          <textarea 
+            id="categoryDescription" 
+            class="form-textarea" 
+            placeholder="Add additional details about your item..."
+            rows="3"
+          ></textarea>
+          <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
+        </div>
+
+        <!-- Conditional Apron Fields -->
+        <div id="apronFields" class="form-row apron-fields" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="apronSize">Apron Size</label>
+            <select id="apronSize" class="form-select">
+              <option value="" disabled selected>Select Size</option>
+              <option value="36">36</option>
+              <option value="38">38</option>
+              <option value="40">40</option>
+              <option value="42">42</option>
+              <option value="44">44</option>
+              <option value="46">46</option>
+            </select>
+            <div class="error-message" id="apronSizeError">Please select an apron size</div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="apronColor">Apron Color</label>
+            <select id="apronColor" class="form-select">
+              <option value="" disabled selected>Select Color</option>
+              <option value="White">White</option>
+              <option value="Blue">Blue</option>
+              <option value="Green">Green</option>
+              <option value="Pink">Pink</option>
+              <option value="Yellow">Yellow</option>
+              <option value="Other">Other</option>
+            </select>
+            <div class="error-message" id="apronColorError">Please select an apron color</div>
           </div>
         </div>
         
@@ -145,6 +193,11 @@
       </form>
     </section>
   </main>
+
+  <!-- Floating Add Button (Mobile) -->
+  <div class="floating-add-btn" id="floatingAddBtn" onclick="scrollToAddItem()">
+    <span class="floating-btn-icon">+</span>
+  </div>
 
   <footer class="footer">
     <div class="footer-content">

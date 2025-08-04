@@ -3,7 +3,7 @@ let currentModalImages = [];
 let currentModalIndex = 0;
 let isLoading = true;
 
-// Theme management with system preference detection
+// Theme management with system preference detection and enhanced animation
 const themeToggle = document.getElementById('themeToggle');
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const savedTheme = localStorage.getItem('theme');
@@ -15,6 +15,13 @@ themeToggle.classList.toggle('active', initialTheme === 'dark');
 themeToggle.addEventListener('click', () => {
   const currentTheme = document.documentElement.getAttribute('data-theme');
   const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  // Add rotation animation
+  themeToggle.style.transform = 'rotate(180deg)';
+  setTimeout(() => {
+    themeToggle.style.transform = 'rotate(0deg)';
+  }, 300);
+  
   document.documentElement.setAttribute('data-theme', newTheme);
   localStorage.setItem('theme', newTheme);
   themeToggle.classList.toggle('active', newTheme === 'dark');
@@ -50,6 +57,26 @@ function showNotification(message, type = 'success') {
       }
     }, 300);
   }, 4000);
+}
+
+// Category change handler for conditional fields
+function handleCategoryChange() {
+  const category = document.getElementById('category').value;
+  const apronFields = document.getElementById('apronFields');
+  const apronSize = document.getElementById('apronSize');
+  const apronColor = document.getElementById('apronColor');
+  
+  if (category === 'Aprons') {
+    apronFields.style.display = 'grid';
+    apronSize.required = true;
+    apronColor.required = true;
+  } else {
+    apronFields.style.display = 'none';
+    apronSize.required = false;
+    apronColor.required = false;
+    apronSize.value = '';
+    apronColor.value = '';
+  }
 }
 
 // Enhanced validation with debouncing
@@ -110,7 +137,7 @@ function clearSearch() {
   searchInput.focus();
 }
 
-// Skeleton loader generation
+// Enhanced skeleton loader with shimmer animation
 function createSkeletonCard() {
   return `
     <div class="skeleton-card">
@@ -118,6 +145,7 @@ function createSkeletonCard() {
       <div class="skeleton-content">
         <div class="skeleton-category"></div>
         <div class="skeleton-title"></div>
+        <div class="skeleton-description"></div>
         <div class="skeleton-price"></div>
         <div class="skeleton-button"></div>
       </div>
@@ -127,12 +155,20 @@ function createSkeletonCard() {
 
 function showSkeletonLoaders() {
   const container = document.getElementById("items-container");
-  const skeletonCount = 6; // Show 6 skeleton cards
+  const skeletonCount = 6;
   container.innerHTML = '';
   
   for (let i = 0; i < skeletonCount; i++) {
     container.innerHTML += createSkeletonCard();
   }
+}
+
+// Helper function to check if item is new (within 24 hours)
+function isNewItem(timestamp) {
+  const now = Date.now();
+  const itemTime = timestamp || 0;
+  const oneDayInMs = 24 * 60 * 60 * 1000;
+  return (now - itemTime) < oneDayInMs;
 }
 
 // Enhanced item loading
@@ -150,10 +186,9 @@ function loadItems() {
       allItems = Array.isArray(data) ? data.map(item => ({
         ...item,
         timestamp: item.timestamp || Date.now(),
-        images: item.images || [item.imageUrl] // Support multiple images
+        images: item.images || [item.imageUrl]
       })) : [];
       
-      // Sort by newest first by default
       sortItemsByDate('newest');
       renderItems(allItems);
       updateItemsCount();
@@ -174,7 +209,7 @@ function loadItems() {
     });
 }
 
-// Enhanced item rendering
+// Enhanced item rendering with new features
 function renderItems(items) {
   const container = document.getElementById("items-container");
   container.innerHTML = "";
@@ -191,12 +226,32 @@ function renderItems(items) {
   items.forEach((item, index) => {
     const price = item.price == 0 || item.price.toString().toLowerCase().includes("free") ? "Free" : `₹${item.price}`;
     const isFree = price === "Free";
+    const isHighPriced = !isFree && parseFloat(item.price) > 1000;
     const images = item.images || [item.imageUrl];
     const primaryImage = images[0];
+    const isNew = isNewItem(item.timestamp);
+    
+    // Build apron details if category is Aprons
+    let apronDetails = '';
+    if (item.category === 'Aprons' && (item.apronSize || item.apronColor)) {
+      apronDetails = `
+        <div class="apron-details">
+          ${item.apronSize ? `<span class="apron-detail">Size: ${item.apronSize}</span>` : ''}
+          ${item.apronColor ? `<span class="apron-detail">Color: ${item.apronColor}</span>` : ''}
+        </div>
+      `;
+    }
+    
+    // Build category description if provided
+    let categoryDescriptionHtml = '';
+    if (item.categoryDescription) {
+      categoryDescriptionHtml = `<p class="category-description">${item.categoryDescription}</p>`;
+    }
     
     const card = document.createElement("div");
     card.className = "item-card";
     card.innerHTML = `
+      ${isNew ? '<div class="new-badge">NEW</div>' : ''}
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
         <img src="${primaryImage}" alt="${item.title}" loading="lazy" />
         <div class="image-zoom-icon">🔍</div>
@@ -204,7 +259,9 @@ function renderItems(items) {
       <div class="item-card-content">
         <div class="category">${item.category || 'Other'}</div>
         <h3>${item.title}</h3>
-        <div class="price ${isFree ? 'free' : ''}">${price}</div>
+        ${categoryDescriptionHtml}
+        ${apronDetails}
+        <div class="price ${isFree ? 'free' : ''} ${isHighPriced ? 'high-priced' : ''}">${price}</div>
         <a href="${formatContact(item.contact)}" target="_blank" class="contact-btn" rel="noopener noreferrer">
           💬 Contact Seller
         </a>
@@ -248,7 +305,8 @@ function sortItems() {
   if (searchQuery) {
     filteredItems = filteredItems.filter(item =>
       item.title?.toLowerCase().includes(searchQuery) || 
-      item.category?.toLowerCase().includes(searchQuery)
+      item.category?.toLowerCase().includes(searchQuery) ||
+      item.categoryDescription?.toLowerCase().includes(searchQuery)
     );
   }
   
@@ -292,18 +350,18 @@ function updateActiveFilter(button) {
 function showAll() {
   updateActiveFilter(event.target);
   document.getElementById("categoryFilter").value = "";
-  sortItems(); // Apply current sort
+  sortItems();
 }
 
 function showFree() {
   updateActiveFilter(event.target);
   document.getElementById("categoryFilter").value = "";
-  sortItems(); // Apply current sort
+  sortItems();
 }
 
 function filterByCategory() {
   document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
-  sortItems(); // Apply current sort
+  sortItems();
 }
 
 // Enhanced search with real-time updates
@@ -313,12 +371,11 @@ function searchItems() {
   const searchClear = document.getElementById('searchClear');
   const query = searchInput.value.trim();
   
-  // Show/hide clear button
   searchClear.style.display = query ? 'block' : 'none';
   
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
-    sortItems(); // This will apply search filter along with current sort
+    sortItems();
   }, 300);
 }
 
@@ -339,6 +396,31 @@ function formatContact(contact) {
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return `mailto:${trimmed}`;
   return `mailto:${trimmed}`;
 }
+
+// Floating add button functionality
+function scrollToAddItem() {
+  document.getElementById('add-item').scrollIntoView({ 
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+
+// Show/hide floating button based on scroll position
+function handleFloatingButton() {
+  const floatingBtn = document.getElementById('floatingAddBtn');
+  const addItemSection = document.getElementById('add-item');
+  const rect = addItemSection.getBoundingClientRect();
+  
+  // Show button if add-item section is not visible
+  if (rect.top > window.innerHeight || rect.bottom < 0) {
+    floatingBtn.classList.add('show');
+  } else {
+    floatingBtn.classList.remove('show');
+  }
+}
+
+window.addEventListener('scroll', handleFloatingButton);
+window.addEventListener('resize', handleFloatingButton);
 
 // Enhanced image modal functionality
 function openImageModal(title, images) {
@@ -426,7 +508,7 @@ function setModalImage(index) {
   updateModalImage();
 }
 
-// Enhanced form submission with multiple image support
+// Enhanced form submission with multiple image support and new fields
 document.getElementById("item-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -434,10 +516,13 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   const price = document.getElementById("price");
   const contact = document.getElementById("contact");
   const category = document.getElementById("category");
+  const categoryDescription = document.getElementById("categoryDescription");
   const image = document.getElementById("image");
+  const apronSize = document.getElementById("apronSize");
+  const apronColor = document.getElementById("apronColor");
   const submitBtn = document.querySelector(".submit-btn");
 
-  // Validate all fields
+  // Validate all required fields
   const validations = [
     validateInput(title, v => v.length >= 3, document.getElementById('titleError'), 'Item name must be at least 3 characters'),
     validateInput(price, v => !isNaN(v) && parseFloat(v) >= 0, document.getElementById('priceError'), 'Enter a valid price (0 or greater)'),
@@ -445,6 +530,14 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     validateInput(category, v => v !== '', document.getElementById('categoryError'), 'Please select a category'),
     validateInput(image, () => image.files.length > 0, document.getElementById('imageError'), 'Please select at least one image')
   ];
+
+  // Additional validation for apron fields if category is Aprons
+  if (category.value === 'Aprons') {
+    validations.push(
+      validateInput(apronSize, v => v !== '', document.getElementById('apronSizeError'), 'Please select an apron size'),
+      validateInput(apronColor, v => v !== '', document.getElementById('apronColorError'), 'Please select an apron color')
+    );
+  }
 
   if (!validations.every(Boolean)) {
     showNotification("Please fix the form errors before submitting", "error");
@@ -475,6 +568,17 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   formData.append("category", category.value);
   formData.append("timestamp", Date.now());
 
+  // Add category description if provided
+  if (categoryDescription.value.trim()) {
+    formData.append("categoryDescription", categoryDescription.value.trim());
+  }
+
+  // Add apron fields if category is Aprons
+  if (category.value === 'Aprons') {
+    formData.append("apronSize", apronSize.value);
+    formData.append("apronColor", apronColor.value);
+  }
+
   // Add all selected images
   for (let i = 0; i < image.files.length; i++) {
     formData.append("images", image.files[i]);
@@ -496,6 +600,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     // Reset form
     document.getElementById("item-form").reset();
     document.getElementById("imagePreviewContainer").innerHTML = "";
+    document.getElementById("apronFields").style.display = "none";
     document.querySelector(".file-input-display").innerHTML = `
       <div class="file-input-icon">📷</div>
       <div class="file-input-text">Click to upload images</div>
@@ -653,6 +758,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize sort dropdown
   document.getElementById('sortSelect').value = 'newest';
+  
+  // Initialize floating button
+  handleFloatingButton();
 });
 
 // Performance optimization: Intersection Observer for lazy loading
