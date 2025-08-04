@@ -556,7 +556,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     }
   }
 
-  // Update button state
+  // Update button states
   submitBtn.disabled = true;
   const originalContent = submitBtn.innerHTML;
   submitBtn.innerHTML = `<div class="loader"></div> <span>Uploading...</span>`;
