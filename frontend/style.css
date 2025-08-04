@@ -1,3 +1,4 @@
+```css
 /* Enhanced Apple-inspired Design System with Inter Font */
 :root {
   /* Light theme */
@@ -1236,3 +1237,4 @@ body {
     right: var(--spacing-md);
   }
 }
+```
