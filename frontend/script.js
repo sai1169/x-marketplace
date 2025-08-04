@@ -298,7 +298,8 @@ function sortItems() {
   // Apply current filters to sorted items
   const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
   const categoryFilter = document.getElementById('categoryFilter').value;
-  const activeFilter = document.querySelector('.filter-btn.active').textContent;
+  const activeFilterBtn = document.querySelector('.filter-btn.active');
+  const activeFilter = activeFilterBtn ? activeFilterBtn.textContent : '';
   
   let filteredItems = sortedItems;
   
