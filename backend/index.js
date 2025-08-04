@@ -1,50 +1,45 @@
+require("dotenv").config(); // Load .env variables
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
-const basicAuth = require('express-basic-auth');
-require("dotenv").config();
 
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use('/admin', basicAuth({
-  users: { 'admin': process.env.ADMIN_PASSWORD },
-  challenge: true,
-}));
-
-// Then define the route
-app.get('/admin', (req, res) => {
-  res.send('Welcome to the admin panel!');
-});
-const PORT = 3000;
+// Middleware
+app.use(cors());
+app.use(express.json());
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-}).then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB error:", err));
+})
+.then(() => console.log("✅ MongoDB connected"))
+.catch(err => console.error("❌ MongoDB connection error:", err));
 
-// Cloudinary Config
+// Cloudinary Configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
+  api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Multer + Cloudinary Storage
+// Cloudinary + Multer Setup
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: "x-marketplace",
-    allowed_formats: ["jpg", "png", "jpeg"],
+    allowed_formats: ["jpg", "jpeg", "png"],
   },
 });
-
 const upload = multer({ storage });
 
-// MongoDB Schema (multiple images)
+// Mongoose Schema
 const itemSchema = new mongoose.Schema({
   title: String,
   price: String,
@@ -52,19 +47,24 @@ const itemSchema = new mongoose.Schema({
   category: String,
   images: [String],
   timestamp: Number,
-  apronSize: String,     // 👈 new
-  apronColor: String     // 👈 new
+  apronSize: String,
+  apronColor: String,
 });
 
 const Item = mongoose.model("Item", itemSchema);
 
-// GET all items
+// GET: Fetch all items
 app.get("/items", async (req, res) => {
-  const items = await Item.find().sort({ timestamp: -1 });
-  res.json(items);
+  try {
+    const items = await Item.find().sort({ timestamp: -1 });
+    res.json(items);
+  } catch (err) {
+    console.error("❌ Error fetching items:", err);
+    res.status(500).json({ error: "Failed to fetch items" });
+  }
 });
 
-// POST item with multiple images
+// POST: Upload item with multiple images
 app.post("/items", upload.array("images", 5), async (req, res) => {
   try {
     const { title, price, contact, category, timestamp, apronSize, apronColor } = req.body;
@@ -83,20 +83,18 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
       images: imageUrls,
       timestamp: timestamp || Date.now(),
       apronSize: category === "Aprons" ? apronSize : undefined,
-      apronColor: category === "Aprons" ? apronColor : undefined
+      apronColor: category === "Aprons" ? apronColor : undefined,
     });
 
     await newItem.save();
     res.status(201).json({ message: "Item saved", item: newItem });
-
-  } catch (error) {
-    console.error("❌ Upload error:", error);
+  } catch (err) {
+    console.error("❌ Upload error:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
+// Start Server
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
-
-
