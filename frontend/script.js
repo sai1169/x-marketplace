@@ -224,7 +224,7 @@ function renderItems(items) {
   }
 
   items.forEach((item, index) => {
-    const price = item.price == 0 || item.price.toString().toLowerCase().includes("free") ? "Free" : `${item.price}`;
+    const price = item.price == 0 || item.price.toString().toLowerCase().includes("free") ? "Free" : `₹${item.price}`;
     const isFree = price === "Free";
     const isHighPriced = !isFree && parseFloat(item.price) > 1000;
     const images = item.images || [item.imageUrl];
