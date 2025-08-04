@@ -470,7 +470,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
 
   const formData = new FormData();
   formData.append("title", title.value.trim());
-  formData.append("price", price.value == 0 ? "Free" : `₹${price.value}`);
+  formData.append("price", price.value == 0 ? "Free" : `${price.value}`);
   formData.append("contact", contact.value.trim());
   formData.append("category", category.value);
   formData.append("timestamp", Date.now());
