@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>X-Marketplace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,17 +10,22 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Mobile Header with Navigation -->
   <header class="header">
     <div class="header-container">
       <a href="#" class="logo">X-Marketplace</a>
-      <nav class="nav">
-        <a href="#item-list" class="nav-link">Browse</a>
-        <a href="#add-item" class="nav-link">Sell Item</a>
+      <div class="mobile-nav">
+        <a href="#item-list" class="nav-link" title="Browse">
+          <i>🔍</i>
+        </a>
+        <a href="#add-item" class="nav-link" title="Sell">
+          <i>📦</i>
+        </a>
         <div class="theme-toggle" id="themeToggle">
           <span class="theme-icon sun">☀️</span>
           <span class="theme-icon moon">🌙</span>
         </div>
-      </nav>
+      </div>
     </div>
   </header>
 
@@ -34,19 +39,18 @@
           id="searchInput" 
           class="search-input"
           placeholder="Search items..." 
-          oninput="searchItems()" 
           aria-label="Search items"
         />
-        <div class="search-clear" id="searchClear" onclick="clearSearch()" style="display: none;">✕</div>
+        <div class="search-clear" id="searchClear" style="display: none;">✕</div>
       </div>
     </section>
 
-    <!-- Filters & Sort -->
+    <!-- Filters & Sort - Mobile Optimized -->
     <section id="filters" class="filters-section">
       <div class="filters-header">
         <h3 class="filters-title">Filter & Sort</h3>
         <div class="sort-container">
-          <select id="sortSelect" class="sort-select" onchange="sortItems()" aria-label="Sort items">
+          <select id="sortSelect" class="sort-select" aria-label="Sort items">
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
             <option value="price-low">Price: Low to High</option>
@@ -57,10 +61,10 @@
       
       <div class="filter-controls">
         <div class="filter-buttons">
-          <button onclick="showAll()" class="filter-btn active">All Items</button>
-          <button onclick="showFree()" class="filter-btn">Free Items</button>
+          <button class="filter-btn active">All Items</button>
+          <button class="filter-btn">Free Items</button>
         </div>
-        <select id="categoryFilter" class="category-select" onchange="filterByCategory()" aria-label="Filter by category">
+        <select id="categoryFilter" class="category-select" aria-label="Filter by category">
           <option value="">All Categories</option>
           <option value="Aprons">Aprons</option>
           <option value="Books">Books</option>
@@ -84,7 +88,7 @@
       </div>
     </section>
 
-    <!-- Add Item -->
+    <!-- Add Item - Mobile Optimized -->
     <section id="add-item" class="add-item-section">
       <div class="section-header">
         <h2 class="section-title">📦 List Your Item</h2>
@@ -92,41 +96,37 @@
       </div>
       
       <form id="item-form" class="item-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="title">Item Name</label>
-            <input type="text" id="title" class="form-input" placeholder="Enter item name" required />
-            <div class="error-message" id="titleError">Please enter a valid item name</div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label" for="price">Price (₹0 for Free)</label>
-            <input type="number" id="price" class="form-input" placeholder="0" required />
-            <div class="error-message" id="priceError">Please enter a valid price</div>
-          </div>
+        <div class="form-group">
+          <label class="form-label" for="title">Item Name</label>
+          <input type="text" id="title" class="form-input" placeholder="Enter item name" required />
+          <div class="error-message" id="titleError">Please enter a valid item name</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="price">Price (₹0 for Free)</label>
+          <input type="number" id="price" class="form-input" placeholder="0" required />
+          <div class="error-message" id="priceError">Please enter a valid price</div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="contact">Contact (WhatsApp or Email)</label>
-            <input type="text" id="contact" class="form-input" placeholder="9876543210 or email@example.com" required />
-            <div class="error-message" id="contactError">Please enter a valid 10-digit phone number or email</div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label" for="category">Category</label>
-            <select id="category" class="form-select" required onchange="handleCategoryChange()">
-              <option value="" disabled selected>Select Category</option>
-              <option value="Aprons">Aprons</option>
-              <option value="Books">Books</option>
-              <option value="Notes">Notes</option>
-              <option value="Tools">Tools</option>
-              <option value="Lab">Lab Items</option>
-              <option value="Other">Other</option>
-              <option value="Free">Free</option>
-            </select>
-            <div class="error-message" id="categoryError">Please select a category</div>
-          </div>
+        <div class="form-group">
+          <label class="form-label" for="contact">Contact (WhatsApp or Email)</label>
+          <input type="text" id="contact" class="form-input" placeholder="9876543210 or email@example.com" required />
+          <div class="error-message" id="contactError">Please enter a valid 10-digit phone number or email</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="category">Category</label>
+          <select id="category" class="form-select" required>
+            <option value="" disabled selected>Select Category</option>
+            <option value="Aprons">Aprons</option>
+            <option value="Books">Books</option>
+            <option value="Notes">Notes</option>
+            <option value="Tools">Tools</option>
+            <option value="Lab">Lab Items</option>
+            <option value="Other">Other</option>
+            <option value="Free">Free</option>
+          </select>
+          <div class="error-message" id="categoryError">Please select a category</div>
         </div>
 
         <!-- Category Description Field -->
@@ -142,7 +142,7 @@
         </div>
 
         <!-- Conditional Apron Fields -->
-        <div id="apronFields" class="form-row apron-fields" style="display: none;">
+        <div id="apronFields" class="apron-fields" style="display: none;">
           <div class="form-group">
             <label class="form-label" for="apronSize">Apron Size</label>
             <select id="apronSize" class="form-select">
@@ -175,7 +175,7 @@
         <div class="form-group">
           <label class="form-label">Item Images</label>
           <div class="file-input-wrapper">
-            <input type="file" id="image" class="file-input" accept="image/*" required onchange="previewImage(event)" multiple />
+            <input type="file" id="image" class="file-input" accept="image/*" required multiple />
             <div class="file-input-display">
               <div class="file-input-icon">📷</div>
               <div class="file-input-text">Click to upload images</div>
@@ -195,9 +195,9 @@
   </main>
 
   <!-- Floating Add Button (Mobile) -->
-  <div class="floating-add-btn" id="floatingAddBtn" onclick="scrollToAddItem()">
+  <a href="#add-item" class="floating-add-btn" id="floatingAddBtn">
     <span class="floating-btn-icon">+</span>
-  </div>
+  </a>
 
   <footer class="footer">
     <div class="footer-content">
@@ -208,15 +208,15 @@
   <!-- Image Modal -->
   <div id="imageModal" class="image-modal">
     <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()" aria-label="Close modal">✕</button>
+      <button class="modal-close" aria-label="Close modal">✕</button>
       <div class="modal-header">
         <h3 id="modalTitle" class="modal-title">Item Images</h3>
         <div id="modalCounter" class="modal-counter">1 / 1</div>
       </div>
       <div class="modal-body">
-        <button class="modal-nav prev" onclick="previousImage()" aria-label="Previous image">‹</button>
+        <button class="modal-nav prev" aria-label="Previous image">‹</button>
         <img class="modal-image" id="modalImg" alt="Full Image">
-        <button class="modal-nav next" onclick="nextImage()" aria-label="Next image">›</button>
+        <button class="modal-nav next" aria-label="Next image">›</button>
       </div>
       <div class="modal-thumbnails" id="modalThumbnails"></div>
     </div>

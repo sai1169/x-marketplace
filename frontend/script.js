@@ -1,9 +1,14 @@
+// Mobile-Optimized Marketplace App with Backend Integration
 let allItems = [];
 let currentModalImages = [];
 let currentModalIndex = 0;
 let isLoading = true;
 
-// Theme management with system preference detection and enhanced animation
+// Backend Configuration - UPDATE THIS WITH YOUR RENDER URL
+const API_BASE_URL = "https://x-marketplace.onrender.com/";
+const ITEMS_ENDPOINT = `${API_BASE_URL}/items`;
+
+// Theme management
 const themeToggle = document.getElementById('themeToggle');
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const savedTheme = localStorage.getItem('theme');
@@ -16,7 +21,6 @@ themeToggle.addEventListener('click', () => {
   const currentTheme = document.documentElement.getAttribute('data-theme');
   const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
   
-  // Add rotation animation
   themeToggle.style.transform = 'rotate(180deg)';
   setTimeout(() => {
     themeToggle.style.transform = 'rotate(0deg)';
@@ -59,7 +63,7 @@ function showNotification(message, type = 'success') {
   }, 4000);
 }
 
-// Category change handler for conditional fields
+// Category change handler
 function handleCategoryChange() {
   const category = document.getElementById('category').value;
   const apronFields = document.getElementById('apronFields');
@@ -67,7 +71,7 @@ function handleCategoryChange() {
   const apronColor = document.getElementById('apronColor');
   
   if (category === 'Aprons') {
-    apronFields.style.display = 'grid';
+    apronFields.style.display = 'block';
     apronSize.required = true;
     apronColor.required = true;
   } else {
@@ -79,7 +83,7 @@ function handleCategoryChange() {
   }
 }
 
-// Enhanced validation with debouncing
+// Enhanced validation
 function validateInput(input, validator, errorElement, errorMessage) {
   const isValid = validator(input.value.trim());
   input.classList.toggle('error', !isValid);
@@ -118,14 +122,13 @@ function setupValidation() {
 
   category.addEventListener('change', () => {
     validateInput(category, v => v !== '', document.getElementById('categoryError'), 'Please select a category');
+    handleCategoryChange();
   });
 
   image.addEventListener('change', () => {
     validateInput(image, () => image.files.length > 0, document.getElementById('imageError'), 'Please select at least one image');
   });
 }
-
-document.addEventListener('DOMContentLoaded', setupValidation);
 
 // Enhanced search functionality
 function clearSearch() {
@@ -137,7 +140,7 @@ function clearSearch() {
   searchInput.focus();
 }
 
-// Enhanced skeleton loader with shimmer animation
+// Skeleton loader
 function createSkeletonCard() {
   return `
     <div class="skeleton-card">
@@ -145,7 +148,6 @@ function createSkeletonCard() {
       <div class="skeleton-content">
         <div class="skeleton-category"></div>
         <div class="skeleton-title"></div>
-        <div class="skeleton-description"></div>
         <div class="skeleton-price"></div>
         <div class="skeleton-button"></div>
       </div>
@@ -155,7 +157,7 @@ function createSkeletonCard() {
 
 function showSkeletonLoaders() {
   const container = document.getElementById("items-container");
-  const skeletonCount = 6;
+  const skeletonCount = 4;
   container.innerHTML = '';
   
   for (let i = 0; i < skeletonCount; i++) {
@@ -163,7 +165,7 @@ function showSkeletonLoaders() {
   }
 }
 
-// Helper function to check if item is new (within 24 hours)
+// Helper function to check if item is new
 function isNewItem(timestamp) {
   const now = Date.now();
   const itemTime = timestamp || 0;
@@ -171,12 +173,12 @@ function isNewItem(timestamp) {
   return (now - itemTime) < oneDayInMs;
 }
 
-// Enhanced item loading
+// Enhanced item loading with backend fetch
 function loadItems() {
   showSkeletonLoaders();
   updateItemsCount('Loading...');
   
-  fetch("https://x-marketplace.onrender.com/items")
+  fetch(ITEMS_ENDPOINT)
     .then(res => {
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       return res.json();
@@ -209,7 +211,7 @@ function loadItems() {
     });
 }
 
-// Enhanced item rendering with new features
+// Enhanced item rendering
 function renderItems(items) {
   const container = document.getElementById("items-container");
   container.innerHTML = "";
@@ -227,8 +229,8 @@ function renderItems(items) {
     const price = item.price == 0 || item.price.toString().toLowerCase().includes("free") ? "Free" : `₹${item.price}`;
     const isFree = price === "Free";
     const isHighPriced = !isFree && parseFloat(item.price) > 1000;
-    const images = item.images || [item.imageUrl];
-    const primaryImage = images[0];
+    const images = item.images || [];
+    const primaryImage = images[0] || "https://via.placeholder.com/400x300?text=No+Image";
     const isNew = isNewItem(item.timestamp);
     
     // Build apron details if category is Aprons
@@ -252,7 +254,7 @@ function renderItems(items) {
     card.className = "item-card";
     card.innerHTML = `
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
-      <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
+      <div class="image-wrapper">
         <img src="${primaryImage}" alt="${item.title}" loading="lazy" />
         <div class="image-zoom-icon">🔍</div>
       </div>
@@ -270,6 +272,12 @@ function renderItems(items) {
     // Add staggered animation
     card.style.animationDelay = `${index * 0.1}s`;
     container.appendChild(card);
+    
+    // Add click handler for image zoom
+    const imageWrapper = card.querySelector('.image-wrapper');
+    imageWrapper.addEventListener('click', () => {
+      openImageModal(item.title, images);
+    });
   });
   
   updateItemsCount(items.length);
@@ -440,9 +448,14 @@ function openImageModal(title, images) {
   // Create thumbnails if multiple images
   if (currentModalImages.length > 1) {
     modalThumbnails.innerHTML = currentModalImages.map((img, index) => 
-      `<img src="${img}" class="modal-thumbnail ${index === 0 ? 'active' : ''}" onclick="setModalImage(${index})" alt="Thumbnail ${index + 1}">`
+      `<img src="${img}" class="modal-thumbnail ${index === 0 ? 'active' : ''}" alt="Thumbnail ${index + 1}">`
     ).join('');
     modalThumbnails.style.display = 'flex';
+    
+    // Add click handlers for thumbnails
+    document.querySelectorAll('.modal-thumbnail').forEach((thumb, index) => {
+      thumb.addEventListener('click', () => setModalImage(index));
+    });
   } else {
     modalThumbnails.style.display = 'none';
   }
@@ -509,18 +522,18 @@ function setModalImage(index) {
   updateModalImage();
 }
 
-// Enhanced form submission with multiple image support and new fields
+// Enhanced form submission with backend POST
 document.getElementById("item-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const title = document.getElementById("title");
-  const price = document.getElementById("price");
-  const contact = document.getElementById("contact");
-  const category = document.getElementById("category");
-  const categoryDescription = document.getElementById("categoryDescription");
-  const image = document.getElementById("image");
-  const apronSize = document.getElementById("apronSize");
-  const apronColor = document.getElementById("apronColor");
+  const title = document.getElementById('title');
+  const price = document.getElementById('price');
+  const contact = document.getElementById('contact');
+  const category = document.getElementById('category');
+  const categoryDescription = document.getElementById('categoryDescription');
+  const image = document.getElementById('image');
+  const apronSize = document.getElementById('apronSize');
+  const apronColor = document.getElementById('apronColor');
   const submitBtn = document.querySelector(".submit-btn");
 
   // Validate all required fields
@@ -545,23 +558,12 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     return;
   }
 
-  // Check file sizes
-  for (let file of image.files) {
-    if (file.size > 5 * 1024 * 1024) {
-      showNotification("Each image must be less than 5MB", "error");
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      showNotification("Only image files are allowed", "error");
-      return;
-    }
-  }
-
   // Update button states
   submitBtn.disabled = true;
   const originalContent = submitBtn.innerHTML;
   submitBtn.innerHTML = `<div class="loader"></div> <span>Uploading...</span>`;
 
+  // Create form data
   const formData = new FormData();
   formData.append("title", title.value.trim());
   formData.append("price", price.value == 0 ? "Free" : `${price.value}`);
@@ -569,12 +571,10 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   formData.append("category", category.value);
   formData.append("timestamp", Date.now());
 
-  // Add category description if provided
+  // Add optional fields
   if (categoryDescription.value.trim()) {
     formData.append("categoryDescription", categoryDescription.value.trim());
   }
-
-  // Add apron fields if category is Aprons
   if (category.value === 'Aprons') {
     formData.append("apronSize", apronSize.value);
     formData.append("apronColor", apronColor.value);
@@ -586,7 +586,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   }
 
   try {
-    const response = await fetch("https://x-marketplace.onrender.com/items", {
+    const response = await fetch(ITEMS_ENDPOINT, {
       method: "POST",
       body: formData,
     });
@@ -611,7 +611,6 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     // Reload items after a short delay
     setTimeout(() => {
       loadItems();
-      // Scroll to items section
       document.getElementById('item-list').scrollIntoView({ behavior: 'smooth' });
     }, 1500);
     
@@ -624,7 +623,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   }
 });
 
-// Enhanced image preview with multiple image support
+// Enhanced image preview
 function previewImage(event) {
   const files = Array.from(event.target.files);
   const previewContainer = document.getElementById("imagePreviewContainer");
@@ -638,18 +637,6 @@ function previewImage(event) {
       <div class="file-input-subtext">Support multiple images</div>
     `;
     return;
-  }
-
-  // Validate files
-  for (let file of files) {
-    if (file.size > 5 * 1024 * 1024) {
-      showNotification("Each image must be less than 5MB", "error");
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      showNotification("Only image files are allowed", "error");
-      return;
-    }
   }
 
   // Update file input display
@@ -669,9 +656,13 @@ function previewImage(event) {
       previewDiv.className = "image-preview";
       previewDiv.innerHTML = `
         <img src="${e.target.result}" alt="Preview ${index + 1}" />
-        <button type="button" class="image-preview-remove" onclick="removePreviewImage(${index})" title="Remove image">×</button>
+        <button type="button" class="image-preview-remove" title="Remove image">×</button>
       `;
       previewContainer.appendChild(previewDiv);
+      
+      // Add click handler for remove button
+      const removeBtn = previewDiv.querySelector('.image-preview-remove');
+      removeBtn.addEventListener('click', () => removePreviewImage(index));
     };
     reader.readAsDataURL(file);
   });
@@ -690,7 +681,8 @@ function removePreviewImage(index) {
   imageInput.files = dt.files;
   
   // Trigger preview update
-  previewImage({ target: imageInput });
+  const event = new Event('change', { bubbles: true });
+  imageInput.dispatchEvent(event);
 }
 
 // Keyboard shortcuts and accessibility
@@ -709,37 +701,6 @@ document.addEventListener('keydown', (e) => {
       clearSearch();
     }
   }
-  
-  // Ctrl/Cmd + K focuses search
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault();
-    document.getElementById('searchInput').focus();
-  }
-  
-  // Arrow keys for modal navigation
-  if (document.getElementById('imageModal').classList.contains('show')) {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      previousImage();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      nextImage();
-    }
-  }
-});
-
-// Smooth scrolling for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', (e) => {
-    e.preventDefault();
-    const target = document.querySelector(anchor.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  });
 });
 
 // Click outside modal to close
@@ -751,61 +712,33 @@ document.getElementById('imageModal').addEventListener('click', (e) => {
 
 // Enhanced loading on page load
 document.addEventListener('DOMContentLoaded', () => {
+  // Set up filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      sortItems();
+    });
+  });
+  
+  // Set up sort and filter dropdowns
+  document.getElementById('sortSelect').addEventListener('change', sortItems);
+  document.getElementById('categoryFilter').addEventListener('change', sortItems);
+  
+  // Set up search input
+  document.getElementById('searchInput').addEventListener('input', searchItems);
+  
+  // Set up search clear button
+  document.getElementById('searchClear').addEventListener('click', clearSearch);
+  
+  // Set up image modal navigation
+  document.querySelector('.modal-close').addEventListener('click', closeModal);
+  document.querySelector('.modal-nav.prev').addEventListener('click', previousImage);
+  document.querySelector('.modal-nav.next').addEventListener('click', nextImage);
+  
+  // Initialize
   loadItems();
-  
-  // Add loading state to search input
-  const searchInput = document.getElementById('searchInput');
-  searchInput.addEventListener('input', searchItems);
-  
-  // Initialize sort dropdown
-  document.getElementById('sortSelect').value = 'newest';
-  
-  // Initialize floating button
+  handleCategoryChange();
   handleFloatingButton();
-});
-
-// Performance optimization: Intersection Observer for lazy loading
-const observerOptions = {
-  root: null,
-  rootMargin: '50px',
-  threshold: 0.1
-};
-
-const imageObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const img = entry.target;
-      if (img.dataset.src) {
-        img.src = img.dataset.src;
-        img.removeAttribute('data-src');
-        imageObserver.unobserve(img);
-      }
-    }
-  });
-}, observerOptions);
-
-// Service Worker registration for caching (optional)
-/*
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
-}
-  */
-
-// Error boundary for unhandled errors
-window.addEventListener('error', (e) => {
-  console.error('Unhandled error:', e.error);
-  showNotification('Something went wrong. Please refresh the page.', 'error');
-});
-
-window.addEventListener('unhandledrejection', (e) => {
-  console.error('Unhandled promise rejection:', e.reason);
-  showNotification('Something went wrong. Please try again.', 'error');
+  setupValidation();
 });
