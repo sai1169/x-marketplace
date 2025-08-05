@@ -1,2 +1,5 @@
 node_modules/
+git add .
+git commit -m "n"
+git push -u origin main 
 .env
