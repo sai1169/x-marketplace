@@ -2,224 +2,435 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>X-Marketplace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23007AFF'/><text x='50' y='58' text-anchor='middle' fill='white' font-size='24' font-weight='bold'>X</text></svg>">
+  <meta name="theme-color" content="#007AFF">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="X-Marketplace">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Mobile Header with Navigation -->
-  <header class="header">
+  <!-- Dynamic Island Style Header -->
+  <header class="header" id="header">
     <div class="header-container">
-      <a href="#" class="logo">X-Marketplace</a>
-      <div class="mobile-nav">
-        <a href="#item-list" class="nav-link" title="Browse">
-          <i>🔍</i>
-        </a>
-        <a href="#add-item" class="nav-link" title="Sell">
-          <i>📦</i>
-        </a>
-        <div class="theme-toggle" id="themeToggle">
-          <span class="theme-icon sun">☀️</span>
-          <span class="theme-icon moon">🌙</span>
+      <div class="header-content">
+        <div class="logo-section">
+          <div class="logo">
+            <div class="logo-icon">✨</div>
+            <span class="logo-text">X-Marketplace</span>
+          </div>
+        </div>
+        
+        <div class="header-actions">
+          <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <div class="theme-toggle-track">
+              <div class="theme-toggle-thumb">
+                <span class="theme-icon sun">☀️</span>
+                <span class="theme-icon moon">🌙</span>
+              </div>
+            </div>
+          </button>
+          
+          <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+            <span class="menu-line"></span>
+            <span class="menu-line"></span>
+            <span class="menu-line"></span>
+          </button>
         </div>
       </div>
+      
+      <!-- Navigation Menu -->
+      <nav class="nav" id="nav">
+        <div class="nav-content">
+          <a href="#item-list" class="nav-link" data-section="browse">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-text">Browse</span>
+          </a>
+          <a href="#add-item" class="nav-link" data-section="sell">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">Sell Item</span>
+          </a>
+        </div>
+      </nav>
     </div>
   </header>
 
   <main class="main">
-    <!-- Search -->
+    <!-- Hero Search Section -->
     <section id="search" class="search-section">
-      <div class="search-container">
-        <div class="search-icon">🔍</div>
-        <input 
-          type="text" 
-          id="searchInput" 
-          class="search-input"
-          placeholder="Search items..." 
-          aria-label="Search items"
-        />
-        <div class="search-clear" id="searchClear" style="display: none;">✕</div>
+      <div class="search-hero">
+        <h1 class="search-title">Find Amazing Deals</h1>
+        <p class="search-subtitle">Discover items from fellow students</p>
+        
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <div class="search-icon">🔍</div>
+            <input 
+              type="text" 
+              id="searchInput" 
+              class="search-input"
+              placeholder="Search for anything..." 
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="search-clear" id="searchClear" style="display: none;">
+              <span>✕</span>
+            </button>
+          </div>
+          
+          <!-- Search Suggestions -->
+          <div class="search-suggestions" id="searchSuggestions">
+            <div class="suggestion-item">📚 Books</div>
+            <div class="suggestion-item">👔 Aprons</div>
+            <div class="suggestion-item">📝 Notes</div>
+            <div class="suggestion-item">🔧 Tools</div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Filters & Sort - Mobile Optimized -->
+    <!-- Smart Filters -->
     <section id="filters" class="filters-section">
-      <div class="filters-header">
-        <h3 class="filters-title">Filter & Sort</h3>
-        <div class="sort-container">
-          <select id="sortSelect" class="sort-select" aria-label="Sort items">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-          </select>
+      <div class="filters-container">
+        <!-- Quick Filters -->
+        <div class="quick-filters">
+          <button class="quick-filter active" data-filter="all">
+            <span class="filter-icon">🌟</span>
+            <span>All</span>
+          </button>
+          <button class="quick-filter" data-filter="free">
+            <span class="filter-icon">🆓</span>
+            <span>Free</span>
+          </button>
+          <button class="quick-filter" data-filter="new">
+            <span class="filter-icon">✨</span>
+            <span>New</span>
+          </button>
+        </div>
+        
+        <!-- Advanced Filters -->
+        <div class="advanced-filters">
+          <div class="filter-group">
+            <select id="categoryFilter" class="filter-select">
+              <option value="">All Categories</option>
+              <option value="Aprons">👔 Aprons</option>
+              <option value="Books">📚 Books</option>
+              <option value="Notes">📝 Notes</option>
+              <option value="Tools">🔧 Tools</option>
+              <option value="Lab">🧪 Lab Items</option>
+              <option value="Other">📦 Other</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <select id="sortSelect" class="filter-select">
+              <option value="newest">🕒 Latest</option>
+              <option value="oldest">📅 Oldest</option>
+              <option value="price-low">💰 Price: Low</option>
+              <option value="price-high">💎 Price: High</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Items Grid -->
+    <section id="item-list" class="items-section">
+      <div class="section-header">
+        <div class="section-title-wrapper">
+          <h2 class="section-title">Available Items</h2>
+          <div class="items-count" id="itemsCount">Loading...</div>
         </div>
       </div>
       
-      <div class="filter-controls">
-        <div class="filter-buttons">
-          <button class="filter-btn active">All Items</button>
-          <button class="filter-btn">Free Items</button>
-        </div>
-        <select id="categoryFilter" class="category-select" aria-label="Filter by category">
-          <option value="">All Categories</option>
-          <option value="Aprons">Aprons</option>
-          <option value="Books">Books</option>
-          <option value="Notes">Notes</option>
-          <option value="Tools">Tools</option>
-          <option value="Lab">Lab Items</option>
-          <option value="Other">Other</option>
-          <option value="Free">Free</option>
-        </select>
-      </div>
-    </section>
-
-    <!-- Items -->
-    <section id="item-list" class="items-section">
-      <div class="section-header">
-        <h2 class="section-title">Available Items</h2>
-        <div class="items-count" id="itemsCount">Loading...</div>
-      </div>
       <div id="items-container" class="items-grid">
-        <!-- Skeleton loaders will be inserted here -->
+        <!-- Items will be loaded here -->
+      </div>
+      
+      <!-- Load More Button -->
+      <div class="load-more-section" style="display: none;">
+        <button class="load-more-btn" id="loadMoreBtn">
+          <span class="load-more-text">Load More</span>
+          <span class="load-more-icon">↓</span>
+        </button>
       </div>
     </section>
 
-    <!-- Add Item - Mobile Optimized -->
+    <!-- Add Item Form -->
     <section id="add-item" class="add-item-section">
       <div class="section-header">
-        <h2 class="section-title">📦 List Your Item</h2>
-        <p class="section-subtitle">Share your items with fellow students</p>
+        <div class="section-title-wrapper">
+          <h2 class="section-title">List Your Item</h2>
+          <p class="section-subtitle">Share with fellow students and earn money</p>
+        </div>
       </div>
       
       <form id="item-form" class="item-form">
-        <div class="form-group">
-          <label class="form-label" for="title">Item Name</label>
-          <input type="text" id="title" class="form-input" placeholder="Enter item name" required />
-          <div class="error-message" id="titleError">Please enter a valid item name</div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label" for="price">Price (₹0 for Free)</label>
-          <input type="number" id="price" class="form-input" placeholder="0" required />
-          <div class="error-message" id="priceError">Please enter a valid price</div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="contact">Contact (WhatsApp or Email)</label>
-          <input type="text" id="contact" class="form-input" placeholder="9876543210 or email@example.com" required />
-          <div class="error-message" id="contactError">Please enter a valid 10-digit phone number or email</div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label" for="category">Category</label>
-          <select id="category" class="form-select" required>
-            <option value="" disabled selected>Select Category</option>
-            <option value="Aprons">Aprons</option>
-            <option value="Books">Books</option>
-            <option value="Notes">Notes</option>
-            <option value="Tools">Tools</option>
-            <option value="Lab">Lab Items</option>
-            <option value="Other">Other</option>
-            <option value="Free">Free</option>
-          </select>
-          <div class="error-message" id="categoryError">Please select a category</div>
-        </div>
-
-        <!-- Category Description Field -->
-        <div class="form-group">
-          <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
-          <textarea 
-            id="categoryDescription" 
-            class="form-textarea" 
-            placeholder="Add additional details about your item..."
-            rows="3"
-          ></textarea>
-          <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
-        </div>
-
-        <!-- Conditional Apron Fields -->
-        <div id="apronFields" class="apron-fields" style="display: none;">
-          <div class="form-group">
-            <label class="form-label" for="apronSize">Apron Size</label>
-            <select id="apronSize" class="form-select">
-              <option value="" disabled selected>Select Size</option>
-              <option value="36">36</option>
-              <option value="38">38</option>
-              <option value="40">40</option>
-              <option value="42">42</option>
-              <option value="44">44</option>
-              <option value="46">46</option>
-            </select>
-            <div class="error-message" id="apronSizeError">Please select an apron size</div>
-          </div>
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h3 class="form-section-title">Basic Information</h3>
           
           <div class="form-group">
-            <label class="form-label" for="apronColor">Apron Color</label>
-            <select id="apronColor" class="form-select">
-              <option value="" disabled selected>Select Color</option>
-              <option value="White">White</option>
-              <option value="Blue">Blue</option>
-              <option value="Green">Green</option>
-              <option value="Pink">Pink</option>
-              <option value="Yellow">Yellow</option>
-              <option value="Other">Other</option>
-            </select>
-            <div class="error-message" id="apronColorError">Please select an apron color</div>
+            <label class="form-label" for="title">
+              <span class="label-text">Item Name</span>
+              <span class="label-required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input type="text" id="title" class="form-input" placeholder="Enter item name" required maxlength="100" />
+              <div class="input-focus-border"></div>
+            </div>
+            <div class="error-message" id="titleError"></div>
           </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Images</label>
-          <div class="file-input-wrapper">
-            <input type="file" id="image" class="file-input" accept="image/*" required multiple />
-            <div class="file-input-display">
-              <div class="file-input-icon">📷</div>
-              <div class="file-input-text">Click to upload images</div>
-              <div class="file-input-subtext">Support multiple images</div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="price">
+                <span class="label-text">Price</span>
+                <span class="label-required">*</span>
+              </label>
+              <div class="input-wrapper price-input">
+                <span class="price-symbol">₹</span>
+                <input type="number" id="price" class="form-input" placeholder="0" required min="0" max="100000" />
+                <div class="input-focus-border"></div>
+              </div>
+              <div class="field-hint">Enter 0 for free items</div>
+              <div class="error-message" id="priceError"></div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="category">
+                <span class="label-text">Category</span>
+                <span class="label-required">*</span>
+              </label>
+              <div class="select-wrapper">
+                <select id="category" class="form-select" required>
+                  <option value="" disabled selected>Select Category</option>
+                  <option value="Aprons">👔 Aprons</option>
+                  <option value="Books">📚 Books</option>
+                  <option value="Notes">📝 Notes</option>
+                  <option value="Tools">🔧 Tools</option>
+                  <option value="Lab">🧪 Lab Items</option>
+                  <option value="Other">📦 Other</option>
+                </select>
+                <div class="select-arrow">
+                  <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                    <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="error-message" id="categoryError"></div>
             </div>
           </div>
-          <div id="imagePreviewContainer" class="image-preview-container"></div>
-          <div class="error-message" id="imageError">Please select at least one image</div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="form-section">
+          <h3 class="form-section-title">Contact Information</h3>
+          
+          <div class="form-group">
+            <label class="form-label" for="contact">
+              <span class="label-text">WhatsApp Number or Email</span>
+              <span class="label-required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input type="text" id="contact" class="form-input" placeholder="9876543210 or email@example.com" required />
+              <div class="input-focus-border"></div>
+            </div>
+            <div class="field-hint">Your contact will be visible to buyers</div>
+            <div class="error-message" id="contactError"></div>
+          </div>
+        </div>
+
+        <!-- Additional Details -->
+        <div class="form-section">
+          <h3 class="form-section-title">Additional Details</h3>
+          
+          <div class="form-group">
+            <label class="form-label" for="categoryDescription">
+              <span class="label-text">Item Description</span>
+            </label>
+            <div class="textarea-wrapper">
+              <textarea 
+                id="categoryDescription" 
+                class="form-textarea" 
+                placeholder="Describe your item condition, features, specifications..."
+                rows="4" 
+                maxlength="500"
+              ></textarea>
+              <div class="textarea-focus-border"></div>
+              <div class="character-count">
+                <span id="descriptionCount">0</span>/500
+              </div>
+            </div>
+            <div class="field-hint">Help buyers understand what you're selling</div>
+          </div>
+
+          <!-- Conditional Apron Fields -->
+          <div id="apronFields" class="apron-fields" style="display: none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="apronSize">
+                  <span class="label-text">Size</span>
+                  <span class="label-required">*</span>
+                </label>
+                <div class="select-wrapper">
+                  <select id="apronSize" class="form-select">
+                    <option value="" disabled selected>Select Size</option>
+                    <option value="36">36</option>
+                    <option value="38">38</option>
+                    <option value="40">40</option>
+                    <option value="42">42</option>
+                    <option value="44">44</option>
+                    <option value="46">46</option>
+                  </select>
+                  <div class="select-arrow">
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                      <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="error-message" id="apronSizeError"></div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="apronColor">
+                  <span class="label-text">Color</span>
+                  <span class="label-required">*</span>
+                </label>
+                <div class="select-wrapper">
+                  <select id="apronColor" class="form-select">
+                    <option value="" disabled selected>Select Color</option>
+                    <option value="White">⚪ White</option>
+                    <option value="Blue">🔵 Blue</option>
+                    <option value="Green">🟢 Green</option>
+                    <option value="Pink">🩷 Pink</option>
+                    <option value="Yellow">🟡 Yellow</option>
+                    <option value="Other">🎨 Other</option>
+                  </select>
+                  <div class="select-arrow">
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                      <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="error-message" id="apronColorError"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="form-section">
+          <h3 class="form-section-title">Item Photos</h3>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <span class="label-text">Upload Images</span>
+              <span class="label-required">*</span>
+            </label>
+            
+            <div class="file-upload-area">
+              <input type="file" id="image" class="file-input" accept="image/*" required multiple />
+              <div class="file-upload-content">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">
+                  <span class="upload-title">Tap to add photos</span>
+                  <span class="upload-subtitle">Support multiple images • Max 5MB each</span>
+                </div>
+              </div>
+            </div>
+            
+            <div id="imagePreviewContainer" class="image-preview-container"></div>
+            <div class="error-message" id="imageError"></div>
+          </div>
         </div>
         
         <button type="submit" class="submit-btn">
-          <span class="submit-icon">🚀</span>
-          <span class="submit-text">List Item</span>
+          <span class="submit-content">
+            <span class="submit-icon">🚀</span>
+            <span class="submit-text">List My Item</span>
+          </span>
+          <div class="button-ripple"></div>
         </button>
       </form>
     </section>
   </main>
 
-  <!-- Floating Add Button (Mobile) -->
-  <a href="#add-item" class="floating-add-btn" id="floatingAddBtn">
-    <span class="floating-btn-icon">+</span>
-  </a>
+  <!-- Bottom Navigation (Mobile) -->
+  <nav class="bottom-nav" id="bottomNav">
+    <a href="#item-list" class="bottom-nav-item active" data-section="browse">
+      <div class="nav-item-icon">🔍</div>
+      <span class="nav-item-text">Browse</span>
+    </a>
+    <a href="#add-item" class="bottom-nav-item" data-section="sell">
+      <div class="nav-item-icon">📦</div>
+      <span class="nav-item-text">Sell</span>
+    </a>
+    <button class="bottom-nav-item" id="bottomThemeToggle">
+      <div class="nav-item-icon theme-icon-mobile">🌙</div>
+      <span class="nav-item-text">Theme</span>
+    </button>
+  </nav>
 
-  <footer class="footer">
-    <div class="footer-content">
-      <p>&copy; 2025 X-Marketplace. Built with gunde noppi. 🎓</p>
-    </div>
-  </footer>
+  <!-- Floating Action Button -->
+  <button class="fab" id="fab" style="display: none;">
+    <div class="fab-icon">+</div>
+    <div class="fab-ripple"></div>
+  </button>
 
   <!-- Image Modal -->
   <div id="imageModal" class="image-modal">
-    <div class="modal-content">
-      <button class="modal-close" aria-label="Close modal">✕</button>
+    <div class="modal-backdrop"></div>
+    <div class="modal-container">
       <div class="modal-header">
-        <h3 id="modalTitle" class="modal-title">Item Images</h3>
-        <div id="modalCounter" class="modal-counter">1 / 1</div>
+        <h3 id="modalTitle" class="modal-title">Item Photos</h3>
+        <button class="modal-close" id="modalClose">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
+      
       <div class="modal-body">
-        <button class="modal-nav prev" aria-label="Previous image">‹</button>
-        <img class="modal-image" id="modalImg" alt="Full Image">
-        <button class="modal-nav next" aria-label="Next image">›</button>
+        <div class="modal-image-container">
+          <button class="modal-nav prev" id="modalPrev">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          
+          <img class="modal-image" id="modalImg" alt="Item photo" />
+          
+          <button class="modal-nav next" id="modalNext">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="modal-counter" id="modalCounter">1 of 1</div>
       </div>
+      
       <div class="modal-thumbnails" id="modalThumbnails"></div>
     </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+    </div>
+    <p class="loading-text">Loading...</p>
   </div>
 
   <script src="script.js"></script>
