@@ -1177,21 +1177,16 @@ body {
   }
 }
 
+/* Default layout (for desktops/tablets) */
 .items-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 }
 
-.item-card {
-  flex: 1 1 calc(50% - 16px); /* 2 columns on small screens */
-  max-width: calc(50% - 16px);
-}
-
-/* Optional: full width on very small screens */
-@media (max-width: 400px) {
-  .item-card {
-    flex: 1 1 100%;
-    max-width: 100%;
+/* Two columns on small screens (≤ 600px) */
+@media (max-width: 600px) {
+  .items-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
