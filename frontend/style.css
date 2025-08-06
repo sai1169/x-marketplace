@@ -1165,8 +1165,23 @@ body {
   }
 
   .items-grid {
-    grid-template-columns: 1fr;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.item-card {
+  flex: 1 1 calc(50% - 16px); /* 2 columns on small screens */
+  max-width: calc(50% - 16px);
+}
+
+/* Optional: full width on very small screens */
+@media (max-width: 400px) {
+  .item-card {
+    flex: 1 1 100%;
+    max-width: 100%;
   }
+}
 
   .form-row {
     grid-template-columns: 1fr;
