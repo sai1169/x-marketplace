@@ -1165,6 +1165,19 @@ body {
   }
 
   .items-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 95vw;
+  }
+}
+
+.items-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
@@ -1180,14 +1193,5 @@ body {
   .item-card {
     flex: 1 1 100%;
     max-width: 100%;
-  }
-}
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-content {
-    width: 95vw;
   }
 }
