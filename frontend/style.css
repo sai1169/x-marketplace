@@ -1198,16 +1198,65 @@ body {
   }
 }
 
-/* Default layout (for desktops/tablets) */
-.items-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .nav {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .items-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 95vw;
+  }
 }
 
 /* Two columns on small screens (≤ 600px) */
 @media (max-width: 600px) {
   .items-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .contact-btn {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .item-card h3 {
+    font-size: var(--font-size-md);
+  }
+
+  .price {
+    font-size: var(--font-size-lg);
+  }
+
+  .apron-details {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .apron-detail {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs);
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm);
   }
 }
