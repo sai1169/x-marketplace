@@ -127,8 +127,15 @@ app.delete("/items/:id", async (req, res) => {
     if (!item) {
       return res.status(404).json({ error: "Item not found" });
     }
+    
+    // New: Master Key Check
+    const masterKey = "Sai@1235";
+    if (deleteKey === masterKey) {
+      await Item.findByIdAndDelete(id);
+      return res.status(200).json({ message: "Item deleted successfully with master key" });
+    }
 
-    // Compare the provided key with the stored hash
+    // Original: Compare the provided key with the stored hash
     const isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
 
     if (isMatch) {
