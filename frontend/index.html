@@ -235,16 +235,16 @@
 
   <!-- New: Delete Confirmation Modal -->
   <div id="deleteModal" class="image-modal">
-    <div class="modal-content">
+    <div class="modal-content delete-modal">
       <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close delete modal">✕</button>
-      <div class="modal-header" style="background: var(--color-danger); border-radius: var(--radius-lg) var(--radius-lg) 0 0; position: relative;">
+      <div class="modal-header delete-header">
         <h3 class="modal-title">Delete Item</h3>
       </div>
-      <div class="modal-body" style="background: var(--color-bg-primary); padding: var(--spacing-lg); height: auto; text-align: center; color: var(--color-text-primary);">
-        <p>Please enter the **delete key** to confirm deletion of this item. This action cannot be undone.</p>
-        <input type="password" id="deleteKeyInput" class="form-input" placeholder="Enter delete key" style="margin-bottom: var(--spacing-md);" />
+      <div class="modal-body delete-body">
+        <p>Please enter the <b>delete key</b> to confirm deletion of this item. This action cannot be undone.</p>
+        <input type="password" id="deleteKeyInput" class="form-input" placeholder="Enter delete key" />
         <div class="error-message" id="deleteKeyModalError">Incorrect key. Please try again.</div>
-        <button id="confirmDeleteBtn" class="submit-btn" style="background: var(--color-danger); margin-top: var(--spacing-md); width: 100%;">
+        <button id="confirmDeleteBtn" class="submit-btn" style="background: var(--color-danger); width: 100%;">
           Confirm Delete
         </button>
       </div>

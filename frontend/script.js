@@ -71,7 +71,7 @@ function setupValidation() {
     ['price', v => !isNaN(v) && parseFloat(v) >= 0, 'Enter a valid price (0 or greater)'],
     ['contact', v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Enter a valid 10-digit phone number or email'],
     ['category', v => v !== '', 'Please select a category'],
-    ['deleteKey', v => v.length >= 6, 'Delete key must be at least 6 characters'] // 👈 New validation for delete key
+    ['deleteKey', v => v.length >= 6, 'Delete key must be at least 6 characters']
   ];
 
   validationRules.forEach(([id, validator, message]) => {
@@ -191,6 +191,7 @@ function renderItems(items) {
     
     return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
+      <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item">🗑️</button>
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
         <img src="${images[0]}" alt="${item.title}" loading="lazy" />
         <div class="image-zoom-icon">🔍</div>
@@ -202,7 +203,6 @@ function renderItems(items) {
         ${apronDetails}
         <div class="price ${isFree ? 'free' : ''} ${isHighPriced ? 'high-priced' : ''}">${price}</div>
         <a href="${formatContact(item.contact)}" target="_blank" class="contact-btn" rel="noopener noreferrer">💬 Contact Seller</a>
-        <button onclick="openDeleteModal('${item._id}')" class="contact-btn" style="background: var(--color-danger); margin-top: var(--spacing-sm);">🗑️ Delete Item</button>
       </div>
     </div>`;
   }).join('');
@@ -398,7 +398,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     image: document.getElementById("image"),
     apronSize: document.getElementById("apronSize"),
     apronColor: document.getElementById("apronColor"),
-    deleteKey: document.getElementById("deleteKey") // 👈 Get the new delete key input
+    deleteKey: document.getElementById("deleteKey")
   };
 
   const validations = [
@@ -445,7 +445,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   formData.append("contact", elements.contact.value.trim());
   formData.append("category", elements.category.value);
   formData.append("timestamp", Date.now());
-  formData.append("deleteKey", elements.deleteKey.value.trim()); // 👈 Append the new delete key
+  formData.append("deleteKey", elements.deleteKey.value.trim());
 
   if (elements.categoryDescription.value.trim()) {
     formData.append("categoryDescription", elements.categoryDescription.value.trim());
