@@ -1,4 +1,5 @@
 let allItems = [], currentModalImages = [], currentModalIndex = 0, isLoading = true, searchTimeout;
+let itemIdToDelete = null; // 👈 New variable to store the ID of the item to delete
 
 // Theme management
 const themeToggle = document.getElementById('themeToggle');
@@ -69,7 +70,8 @@ function setupValidation() {
     ['title', v => v.length >= 3, 'Item name must be at least 3 characters'],
     ['price', v => !isNaN(v) && parseFloat(v) >= 0, 'Enter a valid price (0 or greater)'],
     ['contact', v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Enter a valid 10-digit phone number or email'],
-    ['category', v => v !== '', 'Please select a category']
+    ['category', v => v !== '', 'Please select a category'],
+    ['deleteKey', v => v.length >= 6, 'Delete key must be at least 6 characters'] // 👈 New validation for delete key
   ];
 
   validationRules.forEach(([id, validator, message]) => {
@@ -96,7 +98,7 @@ function clearSearch() {
   const searchInput = document.getElementById('searchInput');
   searchInput.value = '';
   document.getElementById('searchClear').style.display = 'none';
-  searchItems();
+  sortItems();
   searchInput.focus();
 }
 
@@ -200,6 +202,7 @@ function renderItems(items) {
         ${apronDetails}
         <div class="price ${isFree ? 'free' : ''} ${isHighPriced ? 'high-priced' : ''}">${price}</div>
         <a href="${formatContact(item.contact)}" target="_blank" class="contact-btn" rel="noopener noreferrer">💬 Contact Seller</a>
+        <button onclick="openDeleteModal('${item._id}')" class="contact-btn" style="background: var(--color-danger); margin-top: var(--spacing-sm);">🗑️ Delete Item</button>
       </div>
     </div>`;
   }).join('');
@@ -394,7 +397,8 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     categoryDescription: document.getElementById("categoryDescription"),
     image: document.getElementById("image"),
     apronSize: document.getElementById("apronSize"),
-    apronColor: document.getElementById("apronColor")
+    apronColor: document.getElementById("apronColor"),
+    deleteKey: document.getElementById("deleteKey") // 👈 Get the new delete key input
   };
 
   const validations = [
@@ -402,7 +406,8 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     validateInput(elements.price, v => !isNaN(v) && parseFloat(v) >= 0, document.getElementById('priceError'), 'Enter a valid price (0 or greater)'),
     validateInput(elements.contact, v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), document.getElementById('contactError'), 'Enter a valid 10-digit phone number or email'),
     validateInput(elements.category, v => v !== '', document.getElementById('categoryError'), 'Please select a category'),
-    validateInput(elements.image, () => elements.image.files.length > 0, document.getElementById('imageError'), 'Please select at least one image')
+    validateInput(elements.image, () => elements.image.files.length > 0, document.getElementById('imageError'), 'Please select at least one image'),
+    validateInput(elements.deleteKey, v => v.length >= 6, document.getElementById('deleteKeyError'), 'Delete key must be at least 6 characters')
   ];
 
   if (elements.category.value === 'Aprons') {
@@ -440,6 +445,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   formData.append("contact", elements.contact.value.trim());
   formData.append("category", elements.category.value);
   formData.append("timestamp", Date.now());
+  formData.append("deleteKey", elements.deleteKey.value.trim()); // 👈 Append the new delete key
 
   if (elements.categoryDescription.value.trim()) {
     formData.append("categoryDescription", elements.categoryDescription.value.trim());
@@ -557,6 +563,12 @@ document.addEventListener('keydown', (e) => {
       return;
     }
     
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal.classList.contains('show')) {
+      closeDeleteModal();
+      return;
+    }
+    
     const searchInput = document.getElementById('searchInput');
     if (searchInput.value) clearSearch();
   }
@@ -587,6 +599,78 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 document.getElementById('imageModal').addEventListener('click', (e) => {
   if (e.target.id === 'imageModal') closeModal();
+});
+
+// New: Delete Modal Logic
+function openDeleteModal(itemId) {
+    itemIdToDelete = itemId;
+    const modal = document.getElementById('deleteModal');
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    document.getElementById('deleteKeyInput').value = '';
+    document.getElementById('deleteKeyModalError').classList.remove('show');
+}
+
+function closeDeleteModal() {
+    itemIdToDelete = null;
+    const modal = document.getElementById('deleteModal');
+    modal.classList.remove('show');
+    
+    setTimeout(() => {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }, 300);
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    const deleteKeyInput = document.getElementById('deleteKeyInput');
+    const deleteKey = deleteKeyInput.value.trim();
+    const errorElement = document.getElementById('deleteKeyModalError');
+
+    if (deleteKey.length < 6) {
+        errorElement.textContent = 'Key must be at least 6 characters.';
+        errorElement.classList.add('show');
+        return;
+    } else {
+        errorElement.classList.remove('show');
+    }
+
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    confirmBtn.disabled = true;
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = `<div class="loader"></div> <span>Deleting...</span>`;
+
+    try {
+        const response = await fetch(`https://x-marketplace.onrender.com/items/${itemIdToDelete}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ deleteKey })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP error ${response.status}`);
+        }
+
+        showNotification("Item deleted successfully!", "success");
+        closeDeleteModal();
+        loadItems(); // Reload items to reflect the change
+    } catch (err) {
+        console.error("Deletion error:", err);
+        errorElement.textContent = err.message || "Failed to delete item.";
+        errorElement.classList.add('show');
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalText;
+    }
+});
+
+// New: Event listener for the delete modal itself
+document.getElementById('deleteModal').addEventListener('click', (e) => {
+  if (e.target.id === 'deleteModal') {
+    closeDeleteModal();
+  }
 });
 
 document.addEventListener('DOMContentLoaded', () => {

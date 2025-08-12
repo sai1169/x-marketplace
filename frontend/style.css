@@ -1039,4 +1039,24 @@ body {
     font-size: var(--font-size-sm);
     padding: var(--spacing-sm);
   }
-} ]
+}
+
+/* New CSS for Delete Confirmation Modal */
+.modal-content.delete-modal {
+  max-width: 450px;
+}
+
+.modal-header.delete-header {
+  background: var(--color-danger);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  position: relative;
+}
+
+.modal-body.delete-body {
+  background: var(--color-bg-primary);
+  padding: var(--spacing-xl);
+  height: auto;
+  text-align: center;
+  color: var(--color-text-primary);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}

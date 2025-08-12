@@ -4,8 +4,9 @@ const cors = require("cors");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
+const bcrypt = require("bcrypt"); // 👈 New import for bcrypt
 
-const app = express(); // Add this line that was missing
+const app = express();
 const PORT = 3000;
 
 // Middleware
@@ -37,17 +38,18 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-// Enhanced MongoDB Schema with new fields
+// Enhanced MongoDB Schema with new fields and delete key hash
 const itemSchema = new mongoose.Schema({
   title: String,
   price: String,
   contact: String,
   category: String,
-  categoryDescription: String,  // 👈 new optional field
+  categoryDescription: String,
   images: [String],
   timestamp: Number,
-  apronSize: String,     // conditional for Aprons
-  apronColor: String     // conditional for Aprons
+  apronSize: String,
+  apronColor: String,
+  deleteKeyHash: String // 👈 New field for the hashed delete key
 });
 
 const Item = mongoose.model("Item", itemSchema);
@@ -74,12 +76,21 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
       categoryDescription, 
       timestamp, 
       apronSize, 
-      apronColor 
+      apronColor,
+      deleteKey // 👈 Get the delete key from the request body
     } = req.body;
 
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: "No images uploaded" });
     }
+
+    if (!deleteKey) {
+      return res.status(400).json({ error: "Delete key is required" });
+    }
+    
+    // Hash the delete key before saving
+    const saltRounds = 10;
+    const deleteKeyHash = await bcrypt.hash(deleteKey, saltRounds);
 
     const imageUrls = req.files.map(file => file.path);
 
@@ -88,12 +99,12 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
       price,
       contact,
       category,
-      categoryDescription: categoryDescription || undefined, // Only store if provided
+      categoryDescription: categoryDescription || undefined,
       images: imageUrls,
       timestamp: timestamp || Date.now(),
-      // Only store apron fields if category is "Aprons"
       apronSize: category === "Aprons" ? apronSize : undefined,
-      apronColor: category === "Aprons" ? apronColor : undefined
+      apronColor: category === "Aprons" ? apronColor : undefined,
+      deleteKeyHash // 👈 Store the hashed key in the database
     });
 
     await newItem.save();
@@ -104,6 +115,34 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+// DELETE item by ID
+app.delete("/items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { deleteKey } = req.body; // 👈 Get the delete key from the request body
+
+    const item = await Item.findById(id);
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    // Compare the provided key with the stored hash
+    const isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
+
+    if (isMatch) {
+      await Item.findByIdAndDelete(id);
+      return res.status(200).json({ message: "Item deleted successfully" });
+    } else {
+      return res.status(401).json({ error: "Incorrect delete key" });
+    }
+  } catch (error) {
+    console.error("❌ Delete error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);

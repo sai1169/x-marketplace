@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -130,6 +129,15 @@
       </div>
     </div>
 
+    <!-- New: Delete Key Field -->
+    <div class="form-group">
+        <label class="form-label" for="deleteKey">Delete Key</label>
+        <input type="password" id="deleteKey" class="form-input" placeholder="Enter a password to delete this item" required />
+        <div class="field-hint">You will need this key to delete your item later. Remember it!</div>
+        <div class="error-message" id="deleteKeyError">Please enter a delete key (at least 6 characters)</div>
+    </div>
+    <!-- End New Field -->
+
     <!-- Category Description Field -->
     <div class="form-group">
       <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
@@ -222,6 +230,24 @@
         <button class="modal-nav next" onclick="nextImage()" aria-label="Next image">›</button>
       </div>
       <div class="modal-thumbnails" id="modalThumbnails"></div>
+    </div>
+  </div>
+
+  <!-- New: Delete Confirmation Modal -->
+  <div id="deleteModal" class="image-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close delete modal">✕</button>
+      <div class="modal-header" style="background: var(--color-danger); border-radius: var(--radius-lg) var(--radius-lg) 0 0; position: relative;">
+        <h3 class="modal-title">Delete Item</h3>
+      </div>
+      <div class="modal-body" style="background: var(--color-bg-primary); padding: var(--spacing-lg); height: auto; text-align: center; color: var(--color-text-primary);">
+        <p>Please enter the **delete key** to confirm deletion of this item. This action cannot be undone.</p>
+        <input type="password" id="deleteKeyInput" class="form-input" placeholder="Enter delete key" style="margin-bottom: var(--spacing-md);" />
+        <div class="error-message" id="deleteKeyModalError">Incorrect key. Please try again.</div>
+        <button id="confirmDeleteBtn" class="submit-btn" style="background: var(--color-danger); margin-top: var(--spacing-md); width: 100%;">
+          Confirm Delete
+        </button>
+      </div>
     </div>
   </div>
 
