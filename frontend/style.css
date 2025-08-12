@@ -1072,6 +1072,12 @@ body {
     font-size: var(--font-size-sm);
     padding: var(--spacing-sm);
   }
+  
+  /* Make delete button always visible on mobile */
+  .delete-btn {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* New CSS for Delete Confirmation Modal */
