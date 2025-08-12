@@ -1,13 +1,9 @@
-let allItems = [];
-let currentModalImages = [];
-let currentModalIndex = 0;
-let isLoading = true;
+let allItems = [], currentModalImages = [], currentModalIndex = 0, isLoading = true, searchTimeout;
 
-// Theme management with system preference detection and enhanced animation
+// Theme management
 const themeToggle = document.getElementById('themeToggle');
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-const savedTheme = localStorage.getItem('theme');
-const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+const initialTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
 
 document.documentElement.setAttribute('data-theme', initialTheme);
 themeToggle.classList.toggle('active', initialTheme === 'dark');
@@ -16,11 +12,8 @@ themeToggle.addEventListener('click', () => {
   const currentTheme = document.documentElement.getAttribute('data-theme');
   const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
   
-  // Add rotation animation
   themeToggle.style.transform = 'rotate(180deg)';
-  setTimeout(() => {
-    themeToggle.style.transform = 'rotate(0deg)';
-  }, 300);
+  setTimeout(() => themeToggle.style.transform = 'rotate(0deg)', 300);
   
   document.documentElement.setAttribute('data-theme', newTheme);
   localStorage.setItem('theme', newTheme);
@@ -35,51 +28,34 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
   }
 });
 
-// Enhanced notification system
+// Notification system
 function showNotification(message, type = 'success') {
   const notification = document.createElement('div');
   notification.className = `notification ${type}`;
-  
-  const icon = type === 'success' ? '✅' : '❌';
-  notification.innerHTML = `
-    <span style="font-size: 16px;">${icon}</span>
-    <span>${message}</span>
-  `;
+  notification.innerHTML = `<span style="font-size: 16px;">${type === 'success' ? '✅' : '❌'}</span><span>${message}</span>`;
   
   document.body.appendChild(notification);
-
   setTimeout(() => notification.classList.add('show'), 100);
   setTimeout(() => {
     notification.classList.remove('show');
-    setTimeout(() => {
-      if (document.body.contains(notification)) {
-        document.body.removeChild(notification);
-      }
-    }, 300);
+    setTimeout(() => document.body.contains(notification) && document.body.removeChild(notification), 300);
   }, 4000);
 }
 
-// Category change handler for conditional fields
+// Category change handler
 function handleCategoryChange() {
   const category = document.getElementById('category').value;
   const apronFields = document.getElementById('apronFields');
   const apronSize = document.getElementById('apronSize');
   const apronColor = document.getElementById('apronColor');
   
-  if (category === 'Aprons') {
-    apronFields.style.display = 'grid';
-    apronSize.required = true;
-    apronColor.required = true;
-  } else {
-    apronFields.style.display = 'none';
-    apronSize.required = false;
-    apronColor.required = false;
-    apronSize.value = '';
-    apronColor.value = '';
-  }
+  const isApron = category === 'Aprons';
+  apronFields.style.display = isApron ? 'grid' : 'none';
+  apronSize.required = apronColor.required = isApron;
+  if (!isApron) apronSize.value = apronColor.value = '';
 }
 
-// Enhanced validation with debouncing
+// Validation
 function validateInput(input, validator, errorElement, errorMessage) {
   const isValid = validator(input.value.trim());
   input.classList.toggle('error', !isValid);
@@ -89,89 +65,70 @@ function validateInput(input, validator, errorElement, errorMessage) {
 }
 
 function setupValidation() {
-  const title = document.getElementById('title');
-  const price = document.getElementById('price');
-  const contact = document.getElementById('contact');
-  const category = document.getElementById('category');
-  const image = document.getElementById('image');
+  const validationRules = [
+    ['title', v => v.length >= 3, 'Item name must be at least 3 characters'],
+    ['price', v => !isNaN(v) && parseFloat(v) >= 0, 'Enter a valid price (0 or greater)'],
+    ['contact', v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Enter a valid 10-digit phone number or email'],
+    ['category', v => v !== '', 'Please select a category']
+  ];
 
-  title.addEventListener('input', () => {
-    clearTimeout(title.debounceTimer);
-    title.debounceTimer = setTimeout(() => {
-      validateInput(title, v => v.length >= 3, document.getElementById('titleError'), 'Item name must be at least 3 characters');
-    }, 300);
+  validationRules.forEach(([id, validator, message]) => {
+    const element = document.getElementById(id);
+    element.addEventListener('input', () => {
+      clearTimeout(element.debounceTimer);
+      element.debounceTimer = setTimeout(() => {
+        validateInput(element, validator, document.getElementById(`${id}Error`), message);
+      }, 300);
+    });
   });
 
-  price.addEventListener('input', () => {
-    clearTimeout(price.debounceTimer);
-    price.debounceTimer = setTimeout(() => {
-      validateInput(price, v => !isNaN(v) && parseFloat(v) >= 0, document.getElementById('priceError'), 'Enter a valid price (0 or greater)');
-    }, 300);
+  document.getElementById('category').addEventListener('change', () => {
+    validateInput(document.getElementById('category'), v => v !== '', document.getElementById('categoryError'), 'Please select a category');
   });
 
-  contact.addEventListener('input', () => {
-    clearTimeout(contact.debounceTimer);
-    contact.debounceTimer = setTimeout(() => {
-      validateInput(contact, v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), document.getElementById('contactError'), 'Enter a valid 10-digit phone number or email');
-    }, 300);
-  });
-
-  category.addEventListener('change', () => {
-    validateInput(category, v => v !== '', document.getElementById('categoryError'), 'Please select a category');
-  });
-
-  image.addEventListener('change', () => {
-    validateInput(image, () => image.files.length > 0, document.getElementById('imageError'), 'Please select at least one image');
+  document.getElementById('image').addEventListener('change', () => {
+    validateInput(document.getElementById('image'), () => document.getElementById('image').files.length > 0, document.getElementById('imageError'), 'Please select at least one image');
   });
 }
 
-document.addEventListener('DOMContentLoaded', setupValidation);
-
-// Enhanced search functionality
+// Search functionality
 function clearSearch() {
   const searchInput = document.getElementById('searchInput');
-  const searchClear = document.getElementById('searchClear');
   searchInput.value = '';
-  searchClear.style.display = 'none';
+  document.getElementById('searchClear').style.display = 'none';
   searchItems();
   searchInput.focus();
 }
 
-// Enhanced skeleton loader with shimmer animation
+function searchItems() {
+  const searchInput = document.getElementById('searchInput');
+  const query = searchInput.value.trim();
+  
+  document.getElementById('searchClear').style.display = query ? 'block' : 'none';
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => sortItems(), 300);
+}
+
+// Skeleton loader
 function createSkeletonCard() {
-  return `
-    <div class="skeleton-card">
-      <div class="skeleton-image"></div>
-      <div class="skeleton-content">
-        <div class="skeleton-category"></div>
-        <div class="skeleton-title"></div>
-        <div class="skeleton-description"></div>
-        <div class="skeleton-price"></div>
-        <div class="skeleton-button"></div>
-      </div>
-    </div>
-  `;
+  return `<div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-category"></div><div class="skeleton-title"></div><div class="skeleton-description"></div><div class="skeleton-price"></div><div class="skeleton-button"></div></div></div>`;
 }
 
 function showSkeletonLoaders() {
   const container = document.getElementById("items-container");
-  const skeletonCount = 6;
-  container.innerHTML = '';
-  
-  for (let i = 0; i < skeletonCount; i++) {
-    container.innerHTML += createSkeletonCard();
-  }
+  container.innerHTML = Array(6).fill(createSkeletonCard()).join('');
 }
 
-// Helper function to check if item is new (within 24 hours)
-function isNewItem(timestamp) {
-  const now = Date.now();
-  const itemTime = timestamp || 0;
-  const oneDayInMs = 24 * 60 * 60 * 1000;
-  return (now - itemTime) < oneDayInMs;
-}
+// Helper functions
+const isNewItem = timestamp => Date.now() - (timestamp || 0) < 24 * 60 * 60 * 1000;
+const formatContact = contact => {
+  const trimmed = contact.trim();
+  if (/^\d{10}$/.test(trimmed)) return `https://wa.me/91${trimmed}`;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return `mailto:${trimmed}`;
+  return `mailto:${trimmed}`;
+};
 
-// Enhanced item loading
+// Item loading
 function loadItems() {
   showSkeletonLoaders();
   updateItemsCount('Loading...');
@@ -200,60 +157,40 @@ function loadItems() {
         <div class="empty-state">
           <h3>Unable to load items</h3>
           <p>Please check your internet connection and try again.</p>
-          <button onclick="loadItems()" class="contact-btn" style="max-width: 200px; margin: 16px auto 0;">
-            🔄 Retry
-          </button>
+          <button onclick="loadItems()" class="contact-btn" style="max-width: 200px; margin: 16px auto 0;">🔄 Retry</button>
         </div>`;
       updateItemsCount('Error loading');
       showNotification("Failed to load items. Please check your connection.", "error");
     });
 }
 
-// Enhanced item rendering with new features
+// Item rendering
 function renderItems(items) {
   const container = document.getElementById("items-container");
-  container.innerHTML = "";
-
+  
   if (!items.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <h3>🔍 No items found</h3>
-        <p>Try adjusting your search terms or filters to find what you're looking for.</p>
-      </div>`;
+    container.innerHTML = `<div class="empty-state"><h3>🔍 No items found</h3><p>Try adjusting your search terms or filters to find what you're looking for.</p></div>`;
     return;
   }
 
-  items.forEach((item, index) => {
+  container.innerHTML = items.map((item, index) => {
     const price = item.price == 0 || item.price.toString().toLowerCase().includes("free") ? "Free" : `₹${item.price}`;
     const isFree = price === "Free";
     const isHighPriced = !isFree && parseFloat(item.price) > 1000;
     const images = item.images || [item.imageUrl];
-    const primaryImage = images[0];
     const isNew = isNewItem(item.timestamp);
     
-    // Build apron details if category is Aprons
     let apronDetails = '';
     if (item.category === 'Aprons' && (item.apronSize || item.apronColor)) {
-      apronDetails = `
-        <div class="apron-details">
-          ${item.apronSize ? `<span class="apron-detail">Size: ${item.apronSize}</span>` : ''}
-          ${item.apronColor ? `<span class="apron-detail">Color: ${item.apronColor}</span>` : ''}
-        </div>
-      `;
+      apronDetails = `<div class="apron-details">${item.apronSize ? `<span class="apron-detail">Size: ${item.apronSize}</span>` : ''}${item.apronColor ? `<span class="apron-detail">Color: ${item.apronColor}</span>` : ''}</div>`;
     }
     
-    // Build category description if provided
-    let categoryDescriptionHtml = '';
-    if (item.categoryDescription) {
-      categoryDescriptionHtml = `<p class="category-description">${item.categoryDescription}</p>`;
-    }
+    const categoryDescriptionHtml = item.categoryDescription ? `<p class="category-description">${item.categoryDescription}</p>` : '';
     
-    const card = document.createElement("div");
-    card.className = "item-card";
-    card.innerHTML = `
+    return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
-        <img src="${primaryImage}" alt="${item.title}" loading="lazy" />
+        <img src="${images[0]}" alt="${item.title}" loading="lazy" />
         <div class="image-zoom-icon">🔍</div>
       </div>
       <div class="item-card-content">
@@ -262,44 +199,27 @@ function renderItems(items) {
         ${categoryDescriptionHtml}
         ${apronDetails}
         <div class="price ${isFree ? 'free' : ''} ${isHighPriced ? 'high-priced' : ''}">${price}</div>
-        <a href="${formatContact(item.contact)}" target="_blank" class="contact-btn" rel="noopener noreferrer">
-          💬 Contact Seller
-        </a>
-      </div>`;
-    
-    // Add staggered animation
-    card.style.animationDelay = `${index * 0.1}s`;
-    container.appendChild(card);
-  });
+        <a href="${formatContact(item.contact)}" target="_blank" class="contact-btn" rel="noopener noreferrer">💬 Contact Seller</a>
+      </div>
+    </div>`;
+  }).join('');
   
   updateItemsCount(items.length);
 }
 
-// Enhanced sorting functionality
+// Sorting
 function sortItems() {
   const sortValue = document.getElementById('sortSelect').value;
   let sortedItems = [...allItems];
   
-  switch (sortValue) {
-    case 'newest':
-      sortedItems = sortItemsByDate('newest');
-      break;
-    case 'oldest':
-      sortedItems = sortItemsByDate('oldest');
-      break;
-    case 'price-low':
-      sortedItems = sortItemsByPrice('low');
-      break;
-    case 'price-high':
-      sortedItems = sortItemsByPrice('high');
-      break;
-  }
+  if (sortValue === 'newest') sortedItems = sortItemsByDate('newest');
+  else if (sortValue === 'oldest') sortedItems = sortItemsByDate('oldest');
+  else if (sortValue === 'price-low') sortedItems = sortItemsByPrice('low');
+  else if (sortValue === 'price-high') sortedItems = sortItemsByPrice('high');
   
-  // Apply current filters to sorted items
   const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
   const categoryFilter = document.getElementById('categoryFilter').value;
-  const activeFilterBtn = document.querySelector('.filter-btn.active');
-  const activeFilter = activeFilterBtn ? activeFilterBtn.textContent : '';
+  const activeFilter = document.querySelector('.filter-btn.active')?.textContent || '';
   
   let filteredItems = sortedItems;
   
@@ -342,7 +262,7 @@ function sortItemsByPrice(direction) {
   });
 }
 
-// Enhanced filtering
+// Filtering
 function updateActiveFilter(button) {
   document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
   if (button) button.classList.add("active");
@@ -365,70 +285,28 @@ function filterByCategory() {
   sortItems();
 }
 
-// Enhanced search with real-time updates
-let searchTimeout;
-function searchItems() {
-  const searchInput = document.getElementById('searchInput');
-  const searchClear = document.getElementById('searchClear');
-  const query = searchInput.value.trim();
-  
-  searchClear.style.display = query ? 'block' : 'none';
-  
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    sortItems();
-  }, 300);
-}
-
-// Items count update
+// Utility functions
 function updateItemsCount(count) {
   const itemsCount = document.getElementById('itemsCount');
-  if (typeof count === 'string') {
-    itemsCount.textContent = count;
-  } else {
-    itemsCount.textContent = `${count} item${count !== 1 ? 's' : ''}`;
-  }
+  itemsCount.textContent = typeof count === 'string' ? count : `${count} item${count !== 1 ? 's' : ''}`;
 }
 
-// Format contact information
-function formatContact(contact) {
-  const trimmed = contact.trim();
-  if (/^\d{10}$/.test(trimmed)) return `https://wa.me/91${trimmed}`;
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return `mailto:${trimmed}`;
-  return `mailto:${trimmed}`;
-}
-
-// Floating add button functionality
 function scrollToAddItem() {
-  document.getElementById('add-item').scrollIntoView({ 
-    behavior: 'smooth',
-    block: 'start'
-  });
+  document.getElementById('add-item').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Show/hide floating button based on scroll position
 function handleFloatingButton() {
   const floatingBtn = document.getElementById('floatingAddBtn');
   const addItemSection = document.getElementById('add-item');
   const rect = addItemSection.getBoundingClientRect();
   
-  // Show button if add-item section is not visible
-  if (rect.top > window.innerHeight || rect.bottom < 0) {
-    floatingBtn.classList.add('show');
-  } else {
-    floatingBtn.classList.remove('show');
-  }
+  floatingBtn.classList.toggle('show', rect.top > window.innerHeight || rect.bottom < 0);
 }
 
-window.addEventListener('scroll', handleFloatingButton);
-window.addEventListener('resize', handleFloatingButton);
-
-// Enhanced image modal functionality
+// Image modal
 function openImageModal(title, images) {
   const modal = document.getElementById('imageModal');
   const modalTitle = document.getElementById('modalTitle');
-  const modalImg = document.getElementById('modalImg');
-  const modalCounter = document.getElementById('modalCounter');
   const modalThumbnails = document.getElementById('modalThumbnails');
   
   currentModalImages = Array.isArray(images) ? images : [images];
@@ -437,7 +315,6 @@ function openImageModal(title, images) {
   modalTitle.textContent = title;
   updateModalImage();
   
-  // Create thumbnails if multiple images
   if (currentModalImages.length > 1) {
     modalThumbnails.innerHTML = currentModalImages.map((img, index) => 
       `<img src="${img}" class="modal-thumbnail ${index === 0 ? 'active' : ''}" onclick="setModalImage(${index})" alt="Thumbnail ${index + 1}">`
@@ -449,8 +326,6 @@ function openImageModal(title, images) {
   
   modal.classList.add('show');
   modal.style.display = 'flex';
-  
-  // Prevent body scroll
   document.body.style.overflow = 'hidden';
 }
 
@@ -472,12 +347,10 @@ function updateModalImage() {
   modalImg.src = currentModalImages[currentModalIndex];
   modalCounter.textContent = `${currentModalIndex + 1} / ${currentModalImages.length}`;
   
-  // Update active thumbnail
   thumbnails.forEach((thumb, index) => {
     thumb.classList.toggle('active', index === currentModalIndex);
   });
   
-  // Show/hide navigation buttons
   const prevBtn = document.querySelector('.modal-nav.prev');
   const nextBtn = document.querySelector('.modal-nav.next');
   
@@ -509,34 +382,33 @@ function setModalImage(index) {
   updateModalImage();
 }
 
-// Enhanced form submission with multiple image support and new fields
+// Form submission
 document.getElementById("item-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const title = document.getElementById("title");
-  const price = document.getElementById("price");
-  const contact = document.getElementById("contact");
-  const category = document.getElementById("category");
-  const categoryDescription = document.getElementById("categoryDescription");
-  const image = document.getElementById("image");
-  const apronSize = document.getElementById("apronSize");
-  const apronColor = document.getElementById("apronColor");
-  const submitBtn = document.querySelector(".submit-btn");
+  const elements = {
+    title: document.getElementById("title"),
+    price: document.getElementById("price"),
+    contact: document.getElementById("contact"),
+    category: document.getElementById("category"),
+    categoryDescription: document.getElementById("categoryDescription"),
+    image: document.getElementById("image"),
+    apronSize: document.getElementById("apronSize"),
+    apronColor: document.getElementById("apronColor")
+  };
 
-  // Validate all required fields
   const validations = [
-    validateInput(title, v => v.length >= 3, document.getElementById('titleError'), 'Item name must be at least 3 characters'),
-    validateInput(price, v => !isNaN(v) && parseFloat(v) >= 0, document.getElementById('priceError'), 'Enter a valid price (0 or greater)'),
-    validateInput(contact, v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), document.getElementById('contactError'), 'Enter a valid 10-digit phone number or email'),
-    validateInput(category, v => v !== '', document.getElementById('categoryError'), 'Please select a category'),
-    validateInput(image, () => image.files.length > 0, document.getElementById('imageError'), 'Please select at least one image')
+    validateInput(elements.title, v => v.length >= 3, document.getElementById('titleError'), 'Item name must be at least 3 characters'),
+    validateInput(elements.price, v => !isNaN(v) && parseFloat(v) >= 0, document.getElementById('priceError'), 'Enter a valid price (0 or greater)'),
+    validateInput(elements.contact, v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), document.getElementById('contactError'), 'Enter a valid 10-digit phone number or email'),
+    validateInput(elements.category, v => v !== '', document.getElementById('categoryError'), 'Please select a category'),
+    validateInput(elements.image, () => elements.image.files.length > 0, document.getElementById('imageError'), 'Please select at least one image')
   ];
 
-  // Additional validation for apron fields if category is Aprons
-  if (category.value === 'Aprons') {
+  if (elements.category.value === 'Aprons') {
     validations.push(
-      validateInput(apronSize, v => v !== '', document.getElementById('apronSizeError'), 'Please select an apron size'),
-      validateInput(apronColor, v => v !== '', document.getElementById('apronColorError'), 'Please select an apron color')
+      validateInput(elements.apronSize, v => v !== '', document.getElementById('apronSizeError'), 'Please select an apron size'),
+      validateInput(elements.apronColor, v => v !== '', document.getElementById('apronColorError'), 'Please select an apron color')
     );
   }
 
@@ -545,8 +417,8 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     return;
   }
 
-  // Check file sizes
-  for (let file of image.files) {
+  // File validation
+  for (let file of elements.image.files) {
     if (file.size > 5 * 1024 * 1024) {
       showNotification("Each image must be less than 5MB", "error");
       return;
@@ -557,32 +429,29 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     }
   }
 
-  // Update button states
+  const submitBtn = document.querySelector(".submit-btn");
   submitBtn.disabled = true;
   const originalContent = submitBtn.innerHTML;
   submitBtn.innerHTML = `<div class="loader"></div> <span>Uploading...</span>`;
 
   const formData = new FormData();
-  formData.append("title", title.value.trim());
-  formData.append("price", price.value == 0 ? "Free" : `${price.value}`);
-  formData.append("contact", contact.value.trim());
-  formData.append("category", category.value);
+  formData.append("title", elements.title.value.trim());
+  formData.append("price", elements.price.value == 0 ? "Free" : elements.price.value);
+  formData.append("contact", elements.contact.value.trim());
+  formData.append("category", elements.category.value);
   formData.append("timestamp", Date.now());
 
-  // Add category description if provided
-  if (categoryDescription.value.trim()) {
-    formData.append("categoryDescription", categoryDescription.value.trim());
+  if (elements.categoryDescription.value.trim()) {
+    formData.append("categoryDescription", elements.categoryDescription.value.trim());
   }
 
-  // Add apron fields if category is Aprons
-  if (category.value === 'Aprons') {
-    formData.append("apronSize", apronSize.value);
-    formData.append("apronColor", apronColor.value);
+  if (elements.category.value === 'Aprons') {
+    formData.append("apronSize", elements.apronSize.value);
+    formData.append("apronColor", elements.apronColor.value);
   }
 
-  // Add all selected images
-  for (let i = 0; i < image.files.length; i++) {
-    formData.append("images", image.files[i]);
+  for (let i = 0; i < elements.image.files.length; i++) {
+    formData.append("images", elements.image.files[i]);
   }
 
   try {
@@ -598,7 +467,6 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
 
     showNotification("✨ Item listed successfully! It will appear shortly.", "success");
     
-    // Reset form
     document.getElementById("item-form").reset();
     document.getElementById("imagePreviewContainer").innerHTML = "";
     document.getElementById("apronFields").style.display = "none";
@@ -608,10 +476,8 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
       <div class="file-input-subtext">Support multiple images</div>
     `;
     
-    // Reload items after a short delay
     setTimeout(() => {
       loadItems();
-      // Scroll to items section
       document.getElementById('item-list').scrollIntoView({ behavior: 'smooth' });
     }, 1500);
     
@@ -624,7 +490,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   }
 });
 
-// Enhanced image preview with multiple image support
+// Image preview
 function previewImage(event) {
   const files = Array.from(event.target.files);
   const previewContainer = document.getElementById("imagePreviewContainer");
@@ -632,15 +498,10 @@ function previewImage(event) {
 
   if (files.length === 0) {
     previewContainer.innerHTML = "";
-    fileInputDisplay.innerHTML = `
-      <div class="file-input-icon">📷</div>
-      <div class="file-input-text">Click to upload images</div>
-      <div class="file-input-subtext">Support multiple images</div>
-    `;
+    fileInputDisplay.innerHTML = `<div class="file-input-icon">📷</div><div class="file-input-text">Click to upload images</div><div class="file-input-subtext">Support multiple images</div>`;
     return;
   }
 
-  // Validate files
   for (let file of files) {
     if (file.size > 5 * 1024 * 1024) {
       showNotification("Each image must be less than 5MB", "error");
@@ -652,15 +513,9 @@ function previewImage(event) {
     }
   }
 
-  // Update file input display
   const fileText = files.length === 1 ? files[0].name : `${files.length} images selected`;
-  fileInputDisplay.innerHTML = `
-    <div class="file-input-icon">✅</div>
-    <div class="file-input-text">${fileText}</div>
-    <div class="file-input-subtext">Click to change selection</div>
-  `;
+  fileInputDisplay.innerHTML = `<div class="file-input-icon">✅</div><div class="file-input-text">${fileText}</div><div class="file-input-subtext">Click to change selection</div>`;
 
-  // Create previews
   previewContainer.innerHTML = "";
   files.forEach((file, index) => {
     const reader = new FileReader();
@@ -681,21 +536,20 @@ function removePreviewImage(index) {
   const imageInput = document.getElementById("image");
   const files = Array.from(imageInput.files);
   
-  // Create new FileList without the removed file
   const dt = new DataTransfer();
   files.forEach((file, i) => {
     if (i !== index) dt.items.add(file);
   });
   
   imageInput.files = dt.files;
-  
-  // Trigger preview update
   previewImage({ target: imageInput });
 }
 
-// Keyboard shortcuts and accessibility
+// Event listeners
+window.addEventListener('scroll', handleFloatingButton);
+window.addEventListener('resize', handleFloatingButton);
+
 document.addEventListener('keydown', (e) => {
-  // Escape key closes modal
   if (e.key === 'Escape') {
     const modal = document.getElementById('imageModal');
     if (modal.classList.contains('show')) {
@@ -703,20 +557,15 @@ document.addEventListener('keydown', (e) => {
       return;
     }
     
-    // Clear search on Escape
     const searchInput = document.getElementById('searchInput');
-    if (searchInput.value) {
-      clearSearch();
-    }
+    if (searchInput.value) clearSearch();
   }
   
-  // Ctrl/Cmd + K focuses search
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
     document.getElementById('searchInput').focus();
   }
   
-  // Arrow keys for modal navigation
   if (document.getElementById('imageModal').classList.contains('show')) {
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
@@ -728,49 +577,28 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Smooth scrolling for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', (e) => {
     e.preventDefault();
     const target = document.querySelector(anchor.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 
-// Click outside modal to close
 document.getElementById('imageModal').addEventListener('click', (e) => {
-  if (e.target.id === 'imageModal') {
-    closeModal();
-  }
+  if (e.target.id === 'imageModal') closeModal();
 });
 
-// Enhanced loading on page load
 document.addEventListener('DOMContentLoaded', () => {
   loadItems();
-  
-  // Add loading state to search input
-  const searchInput = document.getElementById('searchInput');
-  searchInput.addEventListener('input', searchItems);
-  
-  // Initialize sort dropdown
+  setupValidation();
+  document.getElementById('searchInput').addEventListener('input', searchItems);
   document.getElementById('sortSelect').value = 'newest';
-  
-  // Initialize floating button
   handleFloatingButton();
 });
 
-// Performance optimization: Intersection Observer for lazy loading
-const observerOptions = {
-  root: null,
-  rootMargin: '50px',
-  threshold: 0.1
-};
-
+// Performance optimization
+const observerOptions = { root: null, rootMargin: '50px', threshold: 0.1 };
 const imageObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -784,22 +612,7 @@ const imageObserver = new IntersectionObserver((entries) => {
   });
 }, observerOptions);
 
-// Service Worker registration for caching (optional)
-/*
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
-}
-  */
-
-// Error boundary for unhandled errors
+// Error handling
 window.addEventListener('error', (e) => {
   console.error('Unhandled error:', e.error);
   showNotification('Something went wrong. Please refresh the page.', 'error');
