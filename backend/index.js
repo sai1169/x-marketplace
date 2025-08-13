@@ -129,7 +129,7 @@ app.delete("/items/:id", async (req, res) => {
     }
     
     // New: Master Key Check
-    const masterKey = "Sai@1235";
+    const masterKey = "ramatej@1357";
     if (deleteKey === masterKey) {
       await Item.findByIdAndDelete(id);
       return res.status(200).json({ message: "Item deleted successfully with master key" });

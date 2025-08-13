@@ -1,5 +1,5 @@
 node_modules/
 git add .
-git commit -m "haha"
+git commit -m "master key"
 git push -u origin main 
 .env
