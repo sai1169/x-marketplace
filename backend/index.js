@@ -146,7 +146,7 @@ app.delete("/items/:id", async (req, res) => {
     }
   } catch (error) {
     console.error("❌ Delete error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Incorrect delete key" });
   }
 });
 
