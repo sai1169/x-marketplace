@@ -191,7 +191,7 @@ function renderItems(items) {
     
     return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
-      <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item"><i class="fa-solid fa-trash"></i></button>
+      <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item">❌</button>
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
         <img src="${images[0]}" alt="${item.title}" loading="lazy" />
         <div class="image-zoom-icon">🔍</div>
