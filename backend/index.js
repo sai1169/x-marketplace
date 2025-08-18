@@ -4,13 +4,27 @@ const cors = require("cors");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
-const bcrypt = require("bcrypt"); // 👈 New import for bcrypt
+const bcrypt = require("bcrypt");
 
 const app = express();
 const PORT = 3000;
 
+// New: Configure CORS to only allow specific origins
+const allowedOrigins = ["https://x-marketplace-one.vercel.app", "http://localhost:3000"];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Check if the request origin is in the allowed list or if it's a same-origin request (e.g., from a browser)
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions)); // 👈 New: Use the configured CORS middleware
 app.use(express.json());
 
 // MongoDB Connection
@@ -49,7 +63,7 @@ const itemSchema = new mongoose.Schema({
   timestamp: Number,
   apronSize: String,
   apronColor: String,
-  deleteKeyHash: String // 👈 New field for the hashed delete key
+  deleteKeyHash: String
 });
 
 const Item = mongoose.model("Item", itemSchema);
@@ -77,7 +91,7 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
       timestamp, 
       apronSize, 
       apronColor,
-      deleteKey // 👈 Get the delete key from the request body
+      deleteKey
     } = req.body;
 
     if (!req.files || req.files.length === 0) {
@@ -104,7 +118,7 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
       timestamp: timestamp || Date.now(),
       apronSize: category === "Aprons" ? apronSize : undefined,
       apronColor: category === "Aprons" ? apronColor : undefined,
-      deleteKeyHash // 👈 Store the hashed key in the database
+      deleteKeyHash
     });
 
     await newItem.save();
@@ -120,7 +134,7 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
 app.delete("/items/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { deleteKey } = req.body; // 👈 Get the delete key from the request body
+    const { deleteKey } = req.body;
 
     const item = await Item.findById(id);
 
@@ -149,7 +163,6 @@ app.delete("/items/:id", async (req, res) => {
     res.status(500).json({ error: "Incorrect delete key" });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
