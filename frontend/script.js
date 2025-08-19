@@ -715,12 +715,38 @@ document.getElementById('deleteModal').addEventListener('click', (e) => {
   }
 });
 
+// Mobile pop-up hint logic
+function showMobileHint() {
+  const hint = document.getElementById('mobileHint');
+  let popCount = 0;
+  
+  function popHint() {
+    if (popCount < 2) {
+      hint.classList.add('show');
+      setTimeout(() => {
+        hint.classList.remove('show');
+        popCount++;
+        if (popCount < 2) {
+          setTimeout(popHint, 5000);
+        }
+      }, 5000);
+    }
+  }
+
+  popHint();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadItems();
   setupValidation();
   document.getElementById('searchInput').addEventListener('input', searchItems);
   document.getElementById('sortSelect').value = 'newest';
   handleFloatingButton();
+
+  // Check if on a mobile device to show the hint
+  if (window.innerWidth <= 600) {
+    showMobileHint();
+  }
 });
 
 // Performance optimization
