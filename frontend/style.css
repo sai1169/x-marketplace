@@ -595,7 +595,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0;
+  opacity: 1;
   transform: scale(0.9);
   transition: all var(--transition-fast);
 }
