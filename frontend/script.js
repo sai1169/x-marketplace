@@ -195,7 +195,7 @@ function renderItems(items) {
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
         <img src="${images[0]}" alt="${item.title}" loading="lazy" />
         <div class="image-zoom-icon">🔍</div>
-        <div class="image-hover-message">Click to view image</div>
+        <div class="image-hover-message">Click to view images</div>
       </div>
       <div class="item-card-content">
         <div class="category">${item.category || 'Other'}</div>
