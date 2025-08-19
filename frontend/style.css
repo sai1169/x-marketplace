@@ -107,7 +107,7 @@ body {
 .logo {
   font-size: var(--font-size-2xl);
   font-weight: 800;
-  color: var(--color-text-primary);
+  color: pink;
   text-decoration: none;
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, var(--color-primary), #5856D6);
