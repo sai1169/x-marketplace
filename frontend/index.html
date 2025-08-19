@@ -8,17 +8,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <!-- New: Font Awesome for better icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uW/j+c7G4l3l+3u1R0lX1x2e7qQ7iN/yDkP6Z9G+x1Q+a3fX+4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
   <header class="header">
     <div class="header-container">
-      <a href="https://x-marketplace-one.vercel.app" class="logo">X-marketplace</a>
+      <a href="#" class="logo">X-marketplace</a>
       <nav class="nav">
         <a href="#item-list" class="nav-link">Browse</a>
         <a href="#add-item" class="nav-link">Sell Item</a>
         <div class="theme-toggle" id="themeToggle">
-          <span class="theme-icon sun">☀️</span>
-          <span class="theme-icon moon">🌙</span>
+          <!-- Updated icons with Font Awesome -->
+          <i class="fa-solid fa-sun theme-icon sun"></i>
+          <i class="fa-solid fa-moon theme-icon moon"></i>
         </div>
       </nav>
     </div>
@@ -28,7 +31,8 @@
     <!-- Search -->
     <section id="search" class="search-section">
       <div class="search-container">
-        <div class="search-icon">🔍</div>
+        <!-- Updated icon with Font Awesome -->
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
         <input 
           type="text" 
           id="searchInput" 
@@ -37,7 +41,10 @@
           oninput="searchItems()" 
           aria-label="Search items"
         />
-        <div class="search-clear" id="searchClear" onclick="clearSearch()" style="display: none;">✕</div>
+        <!-- Updated icon with Font Awesome -->
+        <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display: none;" aria-label="Clear search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
     </section>
 
@@ -197,7 +204,8 @@
       <div class="file-input-wrapper">
         <input type="file" id="image" class="file-input" accept="image/*" required onchange="previewImage(event)" multiple />
         <div class="file-input-display">
-          <div class="file-input-icon">📷</div>
+          <!-- Updated icon with Font Awesome -->
+          <i class="fa-solid fa-camera file-input-icon"></i>
           <div class="file-input-text">Click to upload images</div>
           <div class="file-input-subtext">Support multiple images</div>
         </div>
@@ -207,7 +215,7 @@
     </div>
     
     <button type="submit" class="submit-btn">
-      <span class="submit-icon">🚀</span>
+      <i class="fa-solid fa-paper-plane submit-icon"></i>
       <span class="submit-text">List Item</span>
     </button>
   </form>
@@ -217,7 +225,7 @@
   <!-- Floating Add Button (Mobile) -->
 
   <div class="floating-add-btn" id="floatingAddBtn" onclick="scrollToAddItem()">
-    <span class="floating-btn-icon">+</span>
+    <i class="fa-solid fa-plus floating-btn-icon"></i>
   </div>
 
   <!-- Mobile hint popup -->
@@ -235,15 +243,17 @@
 
   <div id="imageModal" class="image-modal">
     <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()" aria-label="Close modal">✕</button>
+      <!-- Updated icon with Font Awesome -->
+      <button class="modal-close" onclick="closeModal()" aria-label="Close modal"><i class="fa-solid fa-xmark"></i></button>
       <div class="modal-header">
         <h3 id="modalTitle" class="modal-title">Item Images</h3>
         <div id="modalCounter" class="modal-counter">1 / 1</div>
       </div>
       <div class="modal-body">
-        <button class="modal-nav prev" onclick="previousImage()" aria-label="Previous image">‹</button>
+        <!-- Updated icons with Font Awesome -->
+        <button class="modal-nav prev" onclick="previousImage()" aria-label="Previous image"><i class="fa-solid fa-chevron-left"></i></button>
         <img class="modal-image" id="modalImg" alt="Full Image">
-        <button class="modal-nav next" onclick="nextImage()" aria-label="Next image">›</button>
+        <button class="modal-nav next" onclick="nextImage()" aria-label="Next image"><i class="fa-solid fa-chevron-right"></i></button>
       </div>
       <div class="modal-thumbnails" id="modalThumbnails"></div>
     </div>
@@ -252,7 +262,7 @@
   <!-- New: Delete Confirmation Modal -->
   <div id="deleteModal" class="image-modal">
     <div class="modal-content delete-modal">
-      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close delete modal">✕</button>
+      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close delete modal"><i class="fa-solid fa-xmark"></i></button>
       <div class="modal-header delete-header">
         <h3 class="modal-title">Delete Item</h3>
       </div>
