@@ -68,22 +68,10 @@ const itemSchema = new mongoose.Schema({
 
 const Item = mongoose.model("Item", itemSchema);
 
-// GET all items with pagination
+// GET all items
 app.get("/items", async (req, res) => {
   try {
-    const { _start, _limit } = req.query;
-    let query = Item.find();
-
-    // Default sort by newest, which can be overridden by the frontend
-    query = query.sort({ timestamp: -1 });
-
-    if (_start && _limit) {
-      const start = parseInt(_start);
-      const limit = parseInt(_limit);
-      query = query.skip(start).limit(limit);
-    }
-    
-    const items = await query.exec();
+    const items = await Item.find().sort({ timestamp: -1 });
     res.json(items);
   } catch (error) {
     console.error("❌ Get items error:", error);

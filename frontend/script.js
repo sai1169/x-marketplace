@@ -1,78 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, onSnapshot, getDoc, query, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-// Global Firebase variables provided by the Canvas environment
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
 let allItems = [], currentModalImages = [], currentModalIndex = 0, isLoading = true, searchTimeout;
-let itemIdToDelete = null;
-let lastVisible = null; // Used for "Load More" functionality
-let userWatchlist = new Set();
-let userId;
-
-// Authenticate user anonymously
-async function authenticateUser() {
-  try {
-    if (initialAuthToken) {
-      await signInWithCustomToken(auth, initialAuthToken);
-    } else {
-      await signInAnonymously(auth);
-    }
-  } catch (error) {
-    console.error("Firebase authentication failed: ", error);
-  }
-}
-
-// Watchlist synchronization
-function setupWatchlistListener() {
-  if (!userId) return;
-  const watchlistRef = collection(db, "artifacts", appId, "users", userId, "watchlist");
-  onSnapshot(watchlistRef, (snapshot) => {
-    userWatchlist.clear();
-    snapshot.docs.forEach(doc => {
-      userWatchlist.add(doc.id);
-    });
-    // Re-render items to show updated heart icons
-    renderItems(filterAndSortItems());
-  }, (error) => {
-    console.error("Failed to listen to watchlist changes:", error);
-  });
-}
-
-async function toggleWatchlist(itemId, element) {
-  if (!userId) {
-    showNotification("Please wait, authenticating user...", "error");
-    return;
-  }
-
-  const itemRef = doc(db, "artifacts", appId, "users", userId, "watchlist", itemId);
-  try {
-    if (userWatchlist.has(itemId)) {
-      await deleteDoc(itemRef);
-      showNotification("Item removed from watchlist.", "success");
-      element.classList.remove('favorited', 'animate-fill');
-    } else {
-      await setDoc(itemRef, { itemId });
-      showNotification("Item added to watchlist!", "success");
-      element.classList.add('favorited', 'animate-fill');
-      // Remove animation class after it completes to allow it to be re-triggered
-      element.addEventListener('animationend', () => {
-        element.classList.remove('animate-fill');
-      }, { once: true });
-    }
-  } catch (e) {
-    console.error("Error toggling watchlist:", e);
-    showNotification("Failed to update watchlist.", "error");
-  }
-}
+let itemIdToDelete = null; // 👈 New variable to store the ID of the item to delete
 
 // Theme management
 const themeToggle = document.getElementById('themeToggle');
@@ -171,7 +98,7 @@ function clearSearch() {
   const searchInput = document.getElementById('searchInput');
   searchInput.value = '';
   document.getElementById('searchClear').style.display = 'none';
-  filterAndSortItems();
+  sortItems();
   searchInput.focus();
 }
 
@@ -204,44 +131,39 @@ const formatContact = contact => {
 };
 
 // Item loading
-async function loadItems() {
+function loadItems() {
   showSkeletonLoaders();
   updateItemsCount('Loading...');
-  document.getElementById('loadMoreBtn').style.display = 'none';
-  lastVisible = null;
-  allItems = [];
   
-  await fetchItems(8);
-}
-
-async function fetchItems(limitCount) {
-  try {
-    const res = await fetch("https://x-marketplace.onrender.com/items");
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    const data = await res.json();
-    
-    isLoading = false;
-    allItems = Array.isArray(data) ? data.map(item => ({
-      ...item,
-      timestamp: item.timestamp || Date.now(),
-      images: item.images || [item.imageUrl]
-    })) : [];
-    
-    sortItemsByDate('newest');
-    renderItems(filterAndSortItems());
-    updateItemsCount();
-  } catch (err) {
-    isLoading = false;
-    console.error('Error loading items:', err);
-    document.getElementById("items-container").innerHTML = `
-      <div class="empty-state">
-        <h3>Unable to load items</h3>
-        <p>Please check your internet connection and try again.</p>
-        <button onclick="loadItems()" class="contact-btn" style="max-width: 200px; margin: 16px auto 0;">🔄 Retry</button>
-      </div>`;
-    updateItemsCount('Error loading');
-    showNotification("Failed to load items. Please check your connection.", "error");
-  }
+  fetch("https://x-marketplace.onrender.com/items")
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      isLoading = false;
+      allItems = Array.isArray(data) ? data.map(item => ({
+        ...item,
+        timestamp: item.timestamp || Date.now(),
+        images: item.images || [item.imageUrl]
+      })) : [];
+      
+      sortItemsByDate('newest');
+      renderItems(allItems);
+      updateItemsCount();
+    })
+    .catch(err => {
+      isLoading = false;
+      console.error('Error loading items:', err);
+      document.getElementById("items-container").innerHTML = `
+        <div class="empty-state">
+          <h3>Unable to load items</h3>
+          <p>Please check your internet connection and try again.</p>
+          <button onclick="loadItems()" class="contact-btn" style="max-width: 200px; margin: 16px auto 0;">🔄 Retry</button>
+        </div>`;
+      updateItemsCount('Error loading');
+      showNotification("Failed to load items. Please check your connection.", "error");
+    });
 }
 
 // Item rendering
@@ -253,13 +175,12 @@ function renderItems(items) {
     return;
   }
 
-  container.innerHTML = items.map((item) => {
+  container.innerHTML = items.map((item, index) => {
     const price = item.price == 0 || item.price.toString().toLowerCase().includes("free") ? "Free" : `₹${item.price}`;
     const isFree = price === "Free";
     const isHighPriced = !isFree && parseFloat(item.price) > 1000;
     const images = item.images || [item.imageUrl];
     const isNew = isNewItem(item.timestamp);
-    const isFavorited = userWatchlist.has(item._id);
     
     let apronDetails = '';
     if (item.category === 'Aprons' && (item.apronSize || item.apronColor)) {
@@ -267,22 +188,14 @@ function renderItems(items) {
     }
     
     const categoryDescriptionHtml = item.categoryDescription ? `<p class="category-description">${item.categoryDescription}</p>` : '';
-    const favoriteClass = isFavorited ? 'favorited' : '';
-
-    const imageCarousel = images.length > 1 ? `
-      <div class="image-nav-container">
-        <button class="image-nav-btn prev" onclick="navigateImage(event, '${item._id}', -1)">‹</button>
-        <button class="image-nav-btn next" onclick="navigateImage(event, '${item._id}', 1)">›</button>
-      </div>
-    ` : '';
-
-    return `<div class="item-card" data-id="${item._id}">
+    
+    return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
       <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item">❌</button>
-      <div class="watchlist-heart ${favoriteClass}" onclick="toggleWatchlist('${item._id}', this)">❤️</div>
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
-        <img class="item-image" src="${images[0]}" alt="${item.title}" loading="lazy" />
-        ${imageCarousel}
+        <img src="${images[0]}" alt="${item.title}" loading="lazy" />
+        <div class="image-zoom-icon">🔍</div>
+        <div class="image-hover-message">Click to view image</div>
       </div>
       <div class="item-card-content">
         <div class="category">${item.category || 'Other'}</div>
@@ -298,19 +211,19 @@ function renderItems(items) {
   updateItemsCount(items.length);
 }
 
-// Filter and Sort Logic
-function filterAndSortItems() {
+// Sorting
+function sortItems() {
   const sortValue = document.getElementById('sortSelect').value;
   let sortedItems = [...allItems];
-
-  if (sortValue === 'newest') sortedItems.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-  else if (sortValue === 'oldest') sortedItems.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-  else if (sortValue === 'price-low') sortedItems.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
-  else if (sortValue === 'price-high') sortedItems.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
+  
+  if (sortValue === 'newest') sortedItems = sortItemsByDate('newest');
+  else if (sortValue === 'oldest') sortedItems = sortItemsByDate('oldest');
+  else if (sortValue === 'price-low') sortedItems = sortItemsByPrice('low');
+  else if (sortValue === 'price-high') sortedItems = sortItemsByPrice('high');
   
   const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
   const categoryFilter = document.getElementById('categoryFilter').value;
-  const activeFilterBtn = document.querySelector('.filter-btn.active')?.textContent.trim();
+  const activeFilter = document.querySelector('.filter-btn.active')?.textContent || '';
 
   let filteredItems = sortedItems;
 
@@ -322,27 +235,55 @@ function filterAndSortItems() {
     );
   }
 
-  if (activeFilterBtn === 'Free Items') {
-    filteredItems = filteredItems.filter(item => item.price == 0 || item.price.toString().toLowerCase().includes("free"));
-  } else if (activeFilterBtn === 'Project Stash') {
-    filteredItems = filteredItems.filter(item => item.category?.toLowerCase() === 'iot/project components');
-  } else if (activeFilterBtn === 'Aprons') {
-    filteredItems = filteredItems.filter(item => item.category?.toLowerCase() === 'aprons');
+  // Handle quick filters
+  if (activeFilter === 'Free Items') {
+    filteredItems = filteredItems.filter(item =>
+      item.price == 0 || item.price.toString().toLowerCase().includes("free")
+    );
+  } else if (activeFilter === 'Project Stash') {
+    filteredItems = filteredItems.filter(item =>
+      item.category?.toLowerCase() === 'iot/project components'
+    );
+  } else if (activeFilter === 'Aprons') {
+    filteredItems = filteredItems.filter(item =>
+      item.category?.toLowerCase() === 'aprons'
+    );
+    // Apply sub-sorting for Aprons
     const sizeSort = document.getElementById('apronSizeSort').value;
     const colorSort = document.getElementById('apronColorSort').value;
-    if (sizeSort) filteredItems = filteredItems.filter(item => item.apronSize === sizeSort);
-    if (colorSort) filteredItems = filteredItems.filter(item => item.apronColor === colorSort);
-  } else if (activeFilterBtn === 'Watchlist') {
-    filteredItems = filteredItems.filter(item => userWatchlist.has(item._id));
-  } else if (categoryFilter) {
-    filteredItems = filteredItems.filter(item => item.category?.toLowerCase() === categoryFilter.toLowerCase());
+    
+    if (sizeSort) {
+      filteredItems = filteredItems.filter(item => item.apronSize === sizeSort);
+    }
+    if (colorSort) {
+      filteredItems = filteredItems.filter(item => item.apronColor === colorSort);
+    }
   }
 
-  return filteredItems;
+  // Handle category dropdown filter (if not using a quick filter button)
+  if (!activeFilter && categoryFilter) {
+    filteredItems = filteredItems.filter(item =>
+      item.category?.toLowerCase() === categoryFilter.toLowerCase()
+    );
+  }
+  
+  renderItems(filteredItems);
 }
 
-function sortItems() {
-  renderItems(filterAndSortItems());
+function sortItemsByDate(direction) {
+  return allItems.sort((a, b) => {
+    const timeA = a.timestamp || 0;
+    const timeB = b.timestamp || 0;
+    return direction === 'newest' ? timeB - timeA : timeA - timeB;
+  });
+}
+
+function sortItemsByPrice(direction) {
+  return allItems.sort((a, b) => {
+    const priceA = parseFloat(a.price) || 0;
+    const priceB = parseFloat(b.price) || 0;
+    return direction === 'low' ? priceA - priceB : priceB - priceA;
+  });
 }
 
 // Filtering
@@ -350,6 +291,7 @@ function updateActiveFilter(button) {
   document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
   if (button) button.classList.add("active");
   
+  // Hide apron sub-sort when a different filter is active
   const apronSubSort = document.getElementById('apronSubSort');
   if (button?.id !== 'apronsFilterBtn') {
     apronSubSort.style.display = 'none';
@@ -379,12 +321,6 @@ function showProjectStash() {
 function showAprons() {
   updateActiveFilter(event.target);
   document.getElementById("categoryFilter").value = "Aprons";
-  sortItems();
-}
-
-function showWatchlist() {
-  updateActiveFilter(event.target);
-  document.getElementById("categoryFilter").value = "";
   sortItems();
 }
 
@@ -490,28 +426,6 @@ function setModalImage(index) {
   currentModalIndex = index;
   updateModalImage();
 }
-
-// New: In-card image navigation
-function navigateImage(event, itemId, direction) {
-  event.stopPropagation();
-  const card = document.querySelector(`.item-card[data-id="${itemId}"]`);
-  const item = allItems.find(i => i._id === itemId);
-  if (!item) return;
-
-  const currentImageIndex = item.currentImageIndex || 0;
-  let newIndex = currentImageIndex + direction;
-
-  if (newIndex >= item.images.length) {
-    newIndex = 0;
-  } else if (newIndex < 0) {
-    newIndex = item.images.length - 1;
-  }
-
-  item.currentImageIndex = newIndex;
-  const imageElement = card.querySelector('.item-image');
-  imageElement.src = item.images[newIndex];
-}
-
 
 // Form submission
 document.getElementById("item-form").addEventListener("submit", async (e) => {
@@ -822,21 +736,8 @@ function showMobileHint() {
   popHint();
 }
 
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    userId = user.uid;
-    console.log("User authenticated:", userId);
-    setupWatchlistListener();
-  } else {
-    // This case might be hit if the token is invalid or the user signs out.
-    // The anonymous sign-in is handled on page load.
-    console.log("No user is signed in.");
-  }
-  loadItems();
-});
-
 document.addEventListener('DOMContentLoaded', () => {
-  authenticateUser();
+  loadItems();
   setupValidation();
   document.getElementById('searchInput').addEventListener('input', searchItems);
   document.getElementById('sortSelect').value = 'newest';

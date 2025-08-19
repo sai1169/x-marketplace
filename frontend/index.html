@@ -61,10 +61,6 @@
       <button onclick="showFree()" class="filter-btn">Free Items</button>
       <button onclick="showProjectStash()" class="filter-btn" id="projectStashBtn">Project Stash</button>
       <button onclick="showAprons()" class="filter-btn" id="apronsFilterBtn">Aprons</button>
-      <button onclick="showWatchlist()" class="filter-btn" id="watchlistBtn">
-        <span class="watchlist-heart-icon">❤️</span>
-        Watchlist
-      </button>
     </div>
     <select id="categoryFilter" class="category-select" onchange="filterByCategory()" aria-label="Filter by category">
       <option value="">All Categories</option>
@@ -102,9 +98,6 @@
   </div>
   <div id="items-container" class="items-grid">
     <!-- Skeleton loaders will be inserted here -->
-  </div>
-  <div class="load-more-container" id="loadMoreContainer">
-    <button class="load-more-btn" id="loadMoreBtn" style="display:none;" onclick="loadMoreItems()">Load More</button>
   </div>
 </section>
 
@@ -222,6 +215,7 @@
   </main>
 
   <!-- Floating Add Button (Mobile) -->
+
   <div class="floating-add-btn" id="floatingAddBtn" onclick="scrollToAddItem()">
     <span class="floating-btn-icon">+</span>
   </div>
@@ -238,6 +232,7 @@
   </footer>
 
   <!-- Image Modal -->
+
   <div id="imageModal" class="image-modal">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()" aria-label="Close modal">✕</button>
@@ -272,7 +267,7 @@
     </div>
   </div>
 
-  <script type="module" src="script.js"></script>
+  <script src="script.js"></script>
 
 </body>
 </html>
