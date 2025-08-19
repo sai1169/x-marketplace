@@ -512,7 +512,42 @@ body {
   transition: opacity var(--transition-fast);
 }
 
-.image-wrapper:hover .image-zoom-icon { opacity: 1; }
+.image-wrapper:hover .image-zoom-icon { 
+  opacity: 1; 
+  
+}
+
+/* New CSS for the hover/tap message */
+.image-hover-message {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xs) 0;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all var(--transition-fast);
+  pointer-events: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  display: none; /* Hide by default */
+}
+
+/* Show the message on the image wrapper's hover for desktop */
+.image-wrapper:hover .image-hover-message {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* On desktop, show the message only on hover */
+@media (min-width: 601px) {
+  .image-hover-message {
+    display: block;
+  }
+}
 
 .item-card-content { padding: var(--spacing-lg); }
 
@@ -1074,9 +1109,27 @@ body {
   }
   
   /* Make delete button always visible on mobile */
-.delete-btn {
+  .delete-btn {
     opacity: 0.9;
     transform: scale(1);
+  }
+
+  /* For mobile, make the message subtle and always visible */
+  .image-hover-message {
+    display: block;
+    opacity: 0.8; /* Subtle opacity */
+    transform: translateY(0);
+    position: static; /* Position statically to be part of the flow */
+    background: transparent;
+    color: var(--color-text-secondary); /* Match the text color */
+    text-align: left;
+    padding: 0;
+    margin-top: var(--spacing-sm);
+    font-weight: 500;
+  }
+  
+  .item-card-content {
+      padding-top: 0;
   }
 }
 
