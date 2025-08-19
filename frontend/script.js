@@ -195,6 +195,7 @@ function renderItems(items) {
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
         <img src="${images[0]}" alt="${item.title}" loading="lazy" />
         <div class="image-zoom-icon">🔍</div>
+        <div class="image-hover-message">Click to view image</div>
       </div>
       <div class="item-card-content">
         <div class="category">${item.category || 'Other'}</div>
@@ -223,26 +224,46 @@ function sortItems() {
   const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
   const categoryFilter = document.getElementById('categoryFilter').value;
   const activeFilter = document.querySelector('.filter-btn.active')?.textContent || '';
-  
+
   let filteredItems = sortedItems;
-  
+
   if (searchQuery) {
     filteredItems = filteredItems.filter(item =>
-      item.title?.toLowerCase().includes(searchQuery) || 
+      item.title?.toLowerCase().includes(searchQuery) ||
       item.category?.toLowerCase().includes(searchQuery) ||
       item.categoryDescription?.toLowerCase().includes(searchQuery)
     );
   }
-  
-  if (categoryFilter) {
-    filteredItems = filteredItems.filter(item => 
-      item.category?.toLowerCase() === categoryFilter.toLowerCase()
-    );
-  }
-  
+
+  // Handle quick filters
   if (activeFilter === 'Free Items') {
-    filteredItems = filteredItems.filter(item => 
+    filteredItems = filteredItems.filter(item =>
       item.price == 0 || item.price.toString().toLowerCase().includes("free")
+    );
+  } else if (activeFilter === 'Project Stash') {
+    filteredItems = filteredItems.filter(item =>
+      item.category?.toLowerCase() === 'iot/project components'
+    );
+  } else if (activeFilter === 'Aprons') {
+    filteredItems = filteredItems.filter(item =>
+      item.category?.toLowerCase() === 'aprons'
+    );
+    // Apply sub-sorting for Aprons
+    const sizeSort = document.getElementById('apronSizeSort').value;
+    const colorSort = document.getElementById('apronColorSort').value;
+    
+    if (sizeSort) {
+      filteredItems = filteredItems.filter(item => item.apronSize === sizeSort);
+    }
+    if (colorSort) {
+      filteredItems = filteredItems.filter(item => item.apronColor === colorSort);
+    }
+  }
+
+  // Handle category dropdown filter (if not using a quick filter button)
+  if (!activeFilter && categoryFilter) {
+    filteredItems = filteredItems.filter(item =>
+      item.category?.toLowerCase() === categoryFilter.toLowerCase()
     );
   }
   
@@ -269,6 +290,14 @@ function sortItemsByPrice(direction) {
 function updateActiveFilter(button) {
   document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
   if (button) button.classList.add("active");
+  
+  // Hide apron sub-sort when a different filter is active
+  const apronSubSort = document.getElementById('apronSubSort');
+  if (button?.id !== 'apronsFilterBtn') {
+    apronSubSort.style.display = 'none';
+  } else {
+    apronSubSort.style.display = 'flex';
+  }
 }
 
 function showAll() {
@@ -283,8 +312,21 @@ function showFree() {
   sortItems();
 }
 
+function showProjectStash() {
+  updateActiveFilter(event.target);
+  document.getElementById("categoryFilter").value = "";
+  sortItems();
+}
+
+function showAprons() {
+  updateActiveFilter(event.target);
+  document.getElementById("categoryFilter").value = "Aprons";
+  sortItems();
+}
+
 function filterByCategory() {
   document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
+  document.getElementById('apronSubSort').style.display = 'none';
   sortItems();
 }
 
@@ -474,7 +516,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     showNotification("✨ Item listed successfully! It will appear shortly.", "success");
     
     document.getElementById("item-form").reset();
-    document.getElementById("imagePreviewContainer").innerHTML = "";
+    document.getElementById("image-preview-container").innerHTML = "";
     document.getElementById("apronFields").style.display = "none";
     document.querySelector(".file-input-display").innerHTML = `
       <div class="file-input-icon">📷</div>
@@ -499,7 +541,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
 // Image preview
 function previewImage(event) {
   const files = Array.from(event.target.files);
-  const previewContainer = document.getElementById("imagePreviewContainer");
+  const previewContainer = document.getElementById("image-preview-container");
   const fileInputDisplay = document.querySelector(".file-input-display");
 
   if (files.length === 0) {
