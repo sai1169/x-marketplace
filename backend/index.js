@@ -142,13 +142,15 @@ app.delete("/items/:id", async (req, res) => {
       return res.status(404).json({ error: "Item not found" });
     }
     
-    // Helper function to extract public ID from Cloudinary URL
+    // Updated: More robust helper function to extract public ID from Cloudinary URL
     const getPublicIdFromUrl = (url) => {
-      const parts = url.split('/');
-      const filename = parts.pop();
-      const folderName = parts.pop();
-      const publicId = `${folderName}/${filename.split('.')[0]}`;
-      return publicId;
+      // Use a regular expression to capture the public ID which is everything between
+      // the version number and the file extension.
+      const match = url.match(/\/v\d+\/(.+?)\.[a-zA-Z0-9]+$/);
+      if (match && match[1]) {
+        return match[1];
+      }
+      return null;
     };
     
     // Master Key Check
@@ -157,12 +159,12 @@ app.delete("/items/:id", async (req, res) => {
       // First, delete images from Cloudinary
       for (const imageUrl of item.images) {
         const publicId = getPublicIdFromUrl(imageUrl);
-        try {
-          await cloudinary.uploader.destroy(publicId);
-        } catch (cloudinaryError) {
-          console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
-          // Continue to delete the other images and the item,
-          // but log the error. You might want to handle this differently.
+        if (publicId) {
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (cloudinaryError) {
+            console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
+          }
         }
       }
       // Then, delete the item from the database
@@ -177,12 +179,12 @@ app.delete("/items/:id", async (req, res) => {
       // First, delete images from Cloudinary
       for (const imageUrl of item.images) {
         const publicId = getPublicIdFromUrl(imageUrl);
-        try {
-          await cloudinary.uploader.destroy(publicId);
-        } catch (cloudinaryError) {
-          console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
-          // Continue to delete the other images and the item,
-          // but log the error.
+        if (publicId) {
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (cloudinaryError) {
+            console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
+          }
         }
       }
       // Then, delete the item from the database
