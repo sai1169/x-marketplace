@@ -130,7 +130,7 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
   }
 });
 
-// DELETE item by ID
+// DELETE item by ID and its images from Cloudinary
 app.delete("/items/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -142,9 +142,30 @@ app.delete("/items/:id", async (req, res) => {
       return res.status(404).json({ error: "Item not found" });
     }
     
-    // New: Master Key Check
+    // Helper function to extract public ID from Cloudinary URL
+    const getPublicIdFromUrl = (url) => {
+      const parts = url.split('/');
+      const filename = parts.pop();
+      const folderName = parts.pop();
+      const publicId = `${folderName}/${filename.split('.')[0]}`;
+      return publicId;
+    };
+    
+    // Master Key Check
     const masterKey = "ramatej@1357";
     if (deleteKey === masterKey) {
+      // First, delete images from Cloudinary
+      for (const imageUrl of item.images) {
+        const publicId = getPublicIdFromUrl(imageUrl);
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (cloudinaryError) {
+          console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
+          // Continue to delete the other images and the item,
+          // but log the error. You might want to handle this differently.
+        }
+      }
+      // Then, delete the item from the database
       await Item.findByIdAndDelete(id);
       return res.status(200).json({ message: "Item deleted successfully with master key" });
     }
@@ -153,6 +174,18 @@ app.delete("/items/:id", async (req, res) => {
     const isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
 
     if (isMatch) {
+      // First, delete images from Cloudinary
+      for (const imageUrl of item.images) {
+        const publicId = getPublicIdFromUrl(imageUrl);
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (cloudinaryError) {
+          console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
+          // Continue to delete the other images and the item,
+          // but log the error.
+        }
+      }
+      // Then, delete the item from the database
       await Item.findByIdAndDelete(id);
       return res.status(200).json({ message: "Item deleted successfully" });
     } else {
