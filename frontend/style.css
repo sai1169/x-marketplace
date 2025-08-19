@@ -1144,7 +1144,7 @@ body {
   
   /* Make delete button always visible on mobile */
   .delete-btn {
-    opacity: 0.9;
+    opacity: 1;
     transform: scale(1);
   }
 
