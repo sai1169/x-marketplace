@@ -9,12 +9,11 @@ const bcrypt = require("bcrypt");
 const app = express();
 const PORT = 3000;
 
-// New: Configure CORS to only allow specific origins
-const allowedOrigins = ["https://x-marketplace-one.vercel.app", "http://localhost:3000"];
+// Configure CORS to only allow specific origins
+const allowedOrigins = ["https://x-marketplace-one.vercel.app", "http://localhost:3000", "http://127.0.0.1:5501"]; // Added for local dev
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Check if the request origin is in the allowed list or if it's a same-origin request (e.g., from a browser)
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
     } else {
@@ -24,7 +23,7 @@ const corsOptions = {
 };
 
 // Middleware
-app.use(cors(corsOptions)); // 👈 New: Use the configured CORS middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // MongoDB Connection
@@ -52,7 +51,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-// Enhanced MongoDB Schema with new fields and delete key hash
+// --- Schemas ---
 const itemSchema = new mongoose.Schema({
   title: String,
   price: String,
@@ -68,7 +67,28 @@ const itemSchema = new mongoose.Schema({
 
 const Item = mongoose.model("Item", itemSchema);
 
-// GET all items
+// New: Report Schema
+const reportSchema = new mongoose.Schema({
+    message: { type: String, required: true },
+    itemId: { type: String, required: false }, // Not required for general issues
+    timestamp: { type: Date, default: Date.now }
+});
+
+const Report = mongoose.model("Report", reportSchema);
+
+// --- Master Key Middleware for Admin Routes ---
+const masterKeyAuth = (req, res, next) => {
+    const masterKey = "ramatej@1357";
+    const providedKey = req.headers['x-master-key'];
+    if (providedKey === masterKey) {
+        next();
+    } else {
+        res.status(401).json({ error: "Unauthorized: Invalid master key" });
+    }
+};
+
+
+// --- Item Routes ---
 app.get("/items", async (req, res) => {
   try {
     const items = await Item.find().sort({ timestamp: -1 });
@@ -79,40 +99,22 @@ app.get("/items", async (req, res) => {
   }
 });
 
-// POST item with multiple images and enhanced fields
 app.post("/items", upload.array("images", 5), async (req, res) => {
   try {
     const { 
-      title, 
-      price, 
-      contact, 
-      category, 
-      categoryDescription, 
-      timestamp, 
-      apronSize, 
-      apronColor,
-      deleteKey
+      title, price, contact, category, categoryDescription, 
+      timestamp, apronSize, apronColor, deleteKey
     } = req.body;
 
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: "No images uploaded" });
-    }
-
-    if (!deleteKey) {
-      return res.status(400).json({ error: "Delete key is required" });
-    }
+    if (!req.files || req.files.length === 0) return res.status(400).json({ error: "No images uploaded" });
+    if (!deleteKey) return res.status(400).json({ error: "Delete key is required" });
     
-    // Hash the delete key before saving
     const saltRounds = 10;
     const deleteKeyHash = await bcrypt.hash(deleteKey, saltRounds);
-
     const imageUrls = req.files.map(file => file.path);
 
     const newItem = new Item({
-      title,
-      price,
-      contact,
-      category,
+      title, price, contact, category, 
       categoryDescription: categoryDescription || undefined,
       images: imageUrls,
       timestamp: timestamp || Date.now(),
@@ -122,7 +124,7 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
     });
 
     await newItem.save();
-    res.status(201).json({ message: "Item saved", item: newItem });
+    res.status(21).json({ message: "Item saved", item: newItem });
 
   } catch (error) {
     console.error("❌ Upload error:", error);
@@ -130,64 +132,33 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
   }
 });
 
-// DELETE item by ID and its images from Cloudinary
 app.delete("/items/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { deleteKey } = req.body;
-
     const item = await Item.findById(id);
 
-    if (!item) {
-      return res.status(404).json({ error: "Item not found" });
-    }
+    if (!item) return res.status(404).json({ error: "Item not found" });
     
-    // Updated: More robust helper function to extract public ID from Cloudinary URL
     const getPublicIdFromUrl = (url) => {
-      // Use a regular expression to capture the public ID which is everything between
-      // the version number and the file extension.
       const match = url.match(/\/v\d+\/(.+?)\.[a-zA-Z0-9]+$/);
-      if (match && match[1]) {
-        return match[1];
-      }
-      return null;
+      return match ? match[1] : null;
     };
     
-    // Master Key Check
     const masterKey = "ramatej@1357";
-    if (deleteKey === masterKey) {
-      // First, delete images from Cloudinary
-      for (const imageUrl of item.images) {
-        const publicId = getPublicIdFromUrl(imageUrl);
-        if (publicId) {
-          try {
-            await cloudinary.uploader.destroy(publicId);
-          } catch (cloudinaryError) {
-            console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
-          }
-        }
-      }
-      // Then, delete the item from the database
-      await Item.findByIdAndDelete(id);
-      return res.status(200).json({ message: "Item deleted successfully with master key" });
+    let isMatch = (deleteKey === masterKey);
+    if (!isMatch) {
+      isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
     }
 
-    // Original: Compare the provided key with the stored hash
-    const isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
-
     if (isMatch) {
-      // First, delete images from Cloudinary
       for (const imageUrl of item.images) {
         const publicId = getPublicIdFromUrl(imageUrl);
         if (publicId) {
-          try {
-            await cloudinary.uploader.destroy(publicId);
-          } catch (cloudinaryError) {
-            console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
-          }
+          try { await cloudinary.uploader.destroy(publicId); } 
+          catch (cloudinaryError) { console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError); }
         }
       }
-      // Then, delete the item from the database
       await Item.findByIdAndDelete(id);
       return res.status(200).json({ message: "Item deleted successfully" });
     } else {
@@ -198,6 +169,72 @@ app.delete("/items/:id", async (req, res) => {
     res.status(500).json({ error: "Incorrect delete key" });
   }
 });
+
+// New: PUT route to update an item (Admin only)
+app.put("/items/:id", masterKeyAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, price, category } = req.body;
+
+        const updatedItem = await Item.findByIdAndUpdate(id, {
+            title,
+            price,
+            category
+        }, { new: true }); // {new: true} returns the updated document
+
+        if (!updatedItem) {
+            return res.status(404).json({ error: "Item not found" });
+        }
+
+        res.status(200).json({ message: "Item updated successfully", item: updatedItem });
+    } catch (error) {
+        console.error("❌ Update item error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
+// --- Report Routes ---
+app.post("/report-item", async (req, res) => {
+    try {
+        const { itemId, message } = req.body;
+        if (!itemId || !message) {
+            return res.status(400).json({ error: "Item ID and message are required." });
+        }
+        const newReport = new Report({ itemId, message });
+        await newReport.save();
+        res.status(201).json({ message: "Item reported successfully." });
+    } catch (error) {
+        console.error("❌ Report item error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+app.post("/report-issue", async (req, res) => {
+    try {
+        const { message } = req.body;
+        if (!message) {
+            return res.status(400).json({ error: "Message is required." });
+        }
+        const newReport = new Report({ message });
+        await newReport.save();
+        res.status(201).json({ message: "Issue reported successfully." });
+    } catch (error) {
+        console.error("❌ Report issue error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+app.get("/reports", masterKeyAuth, async (req, res) => {
+    try {
+        const reports = await Report.find().sort({ timestamp: -1 });
+        res.json(reports);
+    } catch (error) {
+        console.error("❌ Get reports error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);

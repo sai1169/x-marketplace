@@ -1,5 +1,5 @@
 let allItems = [], currentModalImages = [], currentModalIndex = 0, isLoading = true, searchTimeout;
-let itemIdToDelete = null; // 👈 New variable to store the ID of the item to delete
+let itemIdToDelete = null; 
 
 // Theme management
 const themeToggle = document.getElementById('themeToggle');
@@ -191,7 +191,10 @@ function renderItems(items) {
     
     return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
-      <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item">❌</button>
+      <div class="card-actions-top">
+        <button class="report-btn" onclick="openReportModal('${item._id}')" aria-label="Report Item">⚠️</button>
+        <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item">❌</button>
+      </div>
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
         <img src="${images[0]}" alt="${item.title}" loading="lazy" />
         <div class="image-zoom-icon">🔍</div>
@@ -235,7 +238,6 @@ function sortItems() {
     );
   }
 
-  // Handle quick filters
   if (activeFilter === 'Free Items') {
     filteredItems = filteredItems.filter(item =>
       item.price == 0 || item.price.toString().toLowerCase().includes("free")
@@ -248,19 +250,13 @@ function sortItems() {
     filteredItems = filteredItems.filter(item =>
       item.category?.toLowerCase() === 'aprons'
     );
-    // Apply sub-sorting for Aprons
     const sizeSort = document.getElementById('apronSizeSort').value;
     const colorSort = document.getElementById('apronColorSort').value;
     
-    if (sizeSort) {
-      filteredItems = filteredItems.filter(item => item.apronSize === sizeSort);
-    }
-    if (colorSort) {
-      filteredItems = filteredItems.filter(item => item.apronColor === colorSort);
-    }
+    if (sizeSort) filteredItems = filteredItems.filter(item => item.apronSize === sizeSort);
+    if (colorSort) filteredItems = filteredItems.filter(item => item.apronColor === colorSort);
   }
 
-  // Handle category dropdown filter (if not using a quick filter button)
   if (!activeFilter && categoryFilter) {
     filteredItems = filteredItems.filter(item =>
       item.category?.toLowerCase() === categoryFilter.toLowerCase()
@@ -291,7 +287,6 @@ function updateActiveFilter(button) {
   document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
   if (button) button.classList.add("active");
   
-  // Hide apron sub-sort when a different filter is active
   const apronSubSort = document.getElementById('apronSubSort');
   if (button?.id !== 'apronsFilterBtn') {
     apronSubSort.style.display = 'none';
@@ -370,18 +365,13 @@ function openImageModal(title, images) {
   }
   
   modal.classList.add('show');
-  modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
   const modal = document.getElementById('imageModal');
   modal.classList.remove('show');
-  
-  setTimeout(() => {
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-  }, 300);
+  document.body.style.overflow = 'auto';
 }
 
 function updateModalImage() {
@@ -392,9 +382,7 @@ function updateModalImage() {
   modalImg.src = currentModalImages[currentModalIndex];
   modalCounter.textContent = `${currentModalIndex + 1} / ${currentModalImages.length}`;
   
-  thumbnails.forEach((thumb, index) => {
-    thumb.classList.toggle('active', index === currentModalIndex);
-  });
+  thumbnails.forEach((thumb, index) => thumb.classList.toggle('active', index === currentModalIndex));
   
   const prevBtn = document.querySelector('.modal-nav.prev');
   const nextBtn = document.querySelector('.modal-nav.next');
@@ -409,17 +397,13 @@ function updateModalImage() {
 }
 
 function previousImage() {
-  if (currentModalIndex > 0) {
-    currentModalIndex--;
-    updateModalImage();
-  }
+  currentModalIndex = (currentModalIndex - 1 + currentModalImages.length) % currentModalImages.length;
+  updateModalImage();
 }
 
 function nextImage() {
-  if (currentModalIndex < currentModalImages.length - 1) {
-    currentModalIndex++;
-    updateModalImage();
-  }
+  currentModalIndex = (currentModalIndex + 1) % currentModalImages.length;
+  updateModalImage();
 }
 
 function setModalImage(index) {
@@ -432,21 +416,17 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const elements = {
-    title: document.getElementById("title"),
-    price: document.getElementById("price"),
-    contact: document.getElementById("contact"),
-    category: document.getElementById("category"),
-    categoryDescription: document.getElementById("categoryDescription"),
-    image: document.getElementById("image"),
-    apronSize: document.getElementById("apronSize"),
-    apronColor: document.getElementById("apronColor"),
+    title: document.getElementById("title"), price: document.getElementById("price"),
+    contact: document.getElementById("contact"), category: document.getElementById("category"),
+    categoryDescription: document.getElementById("categoryDescription"), image: document.getElementById("image"),
+    apronSize: document.getElementById("apronSize"), apronColor: document.getElementById("apronColor"),
     deleteKey: document.getElementById("deleteKey")
   };
 
   const validations = [
     validateInput(elements.title, v => v.length >= 3, document.getElementById('titleError'), 'Item name must be at least 3 characters'),
-    validateInput(elements.price, v => !isNaN(v) && parseFloat(v) >= 0, document.getElementById('priceError'), 'Enter a valid price (0 or greater)'),
-    validateInput(elements.contact, v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), document.getElementById('contactError'), 'Enter a valid 10-digit phone number or email'),
+    validateInput(elements.price, v => !isNaN(v) && parseFloat(v) >= 0, document.getElementById('priceError'), 'Enter a valid price'),
+    validateInput(elements.contact, v => /^\d{10}$/.test(v) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), document.getElementById('contactError'), 'Enter valid contact'),
     validateInput(elements.category, v => v !== '', document.getElementById('categoryError'), 'Please select a category'),
     validateInput(elements.image, () => elements.image.files.length > 0, document.getElementById('imageError'), 'Please select at least one image'),
     validateInput(elements.deleteKey, v => v.length >= 6, document.getElementById('deleteKeyError'), 'Delete key must be at least 6 characters')
@@ -460,20 +440,13 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   }
 
   if (!validations.every(Boolean)) {
-    showNotification("Please fix the form errors before submitting", "error");
+    showNotification("Please fix the form errors", "error");
     return;
   }
 
-  // File validation
   for (let file of elements.image.files) {
-    if (file.size > 5 * 1024 * 1024) {
-      showNotification("Each image must be less than 5MB", "error");
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      showNotification("Only image files are allowed", "error");
-      return;
-    }
+    if (file.size > 5 * 1024 * 1024) { showNotification("Each image must be less than 5MB", "error"); return; }
+    if (!file.type.startsWith('image/')) { showNotification("Only image files are allowed", "error"); return; }
   }
 
   const submitBtn = document.querySelector(".submit-btn");
@@ -489,46 +462,25 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   formData.append("timestamp", Date.now());
   formData.append("deleteKey", elements.deleteKey.value.trim());
 
-  if (elements.categoryDescription.value.trim()) {
-    formData.append("categoryDescription", elements.categoryDescription.value.trim());
-  }
-
+  if (elements.categoryDescription.value.trim()) formData.append("categoryDescription", elements.categoryDescription.value.trim());
   if (elements.category.value === 'Aprons') {
     formData.append("apronSize", elements.apronSize.value);
     formData.append("apronColor", elements.apronColor.value);
   }
-
-  for (let i = 0; i < elements.image.files.length; i++) {
-    formData.append("images", elements.image.files[i]);
-  }
+  for (let i = 0; i < elements.image.files.length; i++) formData.append("images", elements.image.files[i]);
 
   try {
-    const response = await fetch("https://x-marketplace.onrender.com/items", {
-      method: "POST",
-      body: formData,
-    });
-
+    const response = await fetch("https://x-marketplace.onrender.com/items", { method: "POST", body: formData });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error ${response.status}`);
     }
-
-    showNotification("✨ Item listed successfully! It will appear shortly.", "success");
-    
+    showNotification("✨ Item listed successfully!", "success");
     document.getElementById("item-form").reset();
     document.getElementById("image-preview-container").innerHTML = "";
     document.getElementById("apronFields").style.display = "none";
-    document.querySelector(".file-input-display").innerHTML = `
-      <div class="file-input-icon">📷</div>
-      <div class="file-input-text">Click to upload images</div>
-      <div class="file-input-subtext">Support multiple images</div>
-    `;
-    
-    setTimeout(() => {
-      loadItems();
-      document.getElementById('item-list').scrollIntoView({ behavior: 'smooth' });
-    }, 1500);
-    
+    document.querySelector(".file-input-display").innerHTML = `<div class="file-input-icon">📷</div><div class="file-input-text">Click to upload images</div><div class="file-input-subtext">Support multiple images</div>`;
+    setTimeout(() => { loadItems(); document.getElementById('item-list').scrollIntoView({ behavior: 'smooth' }); }, 1500);
   } catch (err) {
     console.error("Upload error:", err);
     showNotification(`❌ Upload failed: ${err.message}`, "error");
@@ -549,31 +501,19 @@ function previewImage(event) {
     fileInputDisplay.innerHTML = `<div class="file-input-icon">📷</div><div class="file-input-text">Click to upload images</div><div class="file-input-subtext">Support multiple images</div>`;
     return;
   }
-
   for (let file of files) {
-    if (file.size > 5 * 1024 * 1024) {
-      showNotification("Each image must be less than 5MB", "error");
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      showNotification("Only image files are allowed", "error");
-      return;
-    }
+    if (file.size > 5 * 1024 * 1024) { showNotification("Each image must be less than 5MB", "error"); return; }
+    if (!file.type.startsWith('image/')) { showNotification("Only image files are allowed", "error"); return; }
   }
-
   const fileText = files.length === 1 ? files[0].name : `${files.length} images selected`;
   fileInputDisplay.innerHTML = `<div class="file-input-icon">✅</div><div class="file-input-text">${fileText}</div><div class="file-input-subtext">Click to change selection</div>`;
-
   previewContainer.innerHTML = "";
   files.forEach((file, index) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const previewDiv = document.createElement("div");
       previewDiv.className = "image-preview";
-      previewDiv.innerHTML = `
-        <img src="${e.target.result}" alt="Preview ${index + 1}" />
-        <button type="button" class="image-preview-remove" onclick="removePreviewImage(${index})" title="Remove image">×</button>
-      `;
+      previewDiv.innerHTML = `<img src="${e.target.result}" alt="Preview ${index + 1}" /><button type="button" class="image-preview-remove" onclick="removePreviewImage(${index})" title="Remove image">×</button>`;
       previewContainer.appendChild(previewDiv);
     };
     reader.readAsDataURL(file);
@@ -583,12 +523,8 @@ function previewImage(event) {
 function removePreviewImage(index) {
   const imageInput = document.getElementById("image");
   const files = Array.from(imageInput.files);
-  
   const dt = new DataTransfer();
-  files.forEach((file, i) => {
-    if (i !== index) dt.items.add(file);
-  });
-  
+  files.forEach((file, i) => { if (i !== index) dt.items.add(file); });
   imageInput.files = dt.files;
   previewImage({ target: imageInput });
 }
@@ -599,35 +535,15 @@ window.addEventListener('resize', handleFloatingButton);
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    const modal = document.getElementById('imageModal');
-    if (modal.classList.contains('show')) {
-      closeModal();
-      return;
-    }
-    
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal.classList.contains('show')) {
-      closeDeleteModal();
-      return;
-    }
-    
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput.value) clearSearch();
+    if (document.getElementById('imageModal').classList.contains('show')) closeModal();
+    else if (document.getElementById('deleteModal').classList.contains('show')) closeDeleteModal();
+    else if (document.getElementById('reportModal').classList.contains('show')) closeReportModal();
+    else if (document.getElementById('searchInput').value) clearSearch();
   }
-  
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault();
-    document.getElementById('searchInput').focus();
-  }
-  
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); }
   if (document.getElementById('imageModal').classList.contains('show')) {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      previousImage();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      nextImage();
-    }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); previousImage(); } 
+    else if (e.key === 'ArrowRight') { e.preventDefault(); nextImage(); }
   }
 });
 
@@ -639,16 +555,13 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
-document.getElementById('imageModal').addEventListener('click', (e) => {
-  if (e.target.id === 'imageModal') closeModal();
-});
+document.getElementById('imageModal').addEventListener('click', (e) => { if (e.target.id === 'imageModal') closeModal(); });
 
-// New: Delete Modal Logic
+// Delete Modal Logic
 function openDeleteModal(itemId) {
     itemIdToDelete = itemId;
     const modal = document.getElementById('deleteModal');
     modal.classList.add('show');
-    modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     document.getElementById('deleteKeyInput').value = '';
     document.getElementById('deleteKeyModalError').classList.remove('show');
@@ -658,11 +571,7 @@ function closeDeleteModal() {
     itemIdToDelete = null;
     const modal = document.getElementById('deleteModal');
     modal.classList.remove('show');
-    
-    setTimeout(() => {
-      modal.style.display = 'none';
-      document.body.style.overflow = 'auto';
-    }, 300);
+    document.body.style.overflow = 'auto';
 }
 
 document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
@@ -694,10 +603,9 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || `HTTP error ${response.status}`);
         }
-
         showNotification("Item deleted successfully!", "success");
         closeDeleteModal();
-        loadItems(); // Reload items to reflect the change
+        loadItems();
     } catch (err) {
         console.error("Deletion error:", err);
         errorElement.textContent = err.message || "Failed to delete item.";
@@ -708,31 +616,83 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
     }
 });
 
-// New: Event listener for the delete modal itself
-document.getElementById('deleteModal').addEventListener('click', (e) => {
-  if (e.target.id === 'deleteModal') {
-    closeDeleteModal();
-  }
+document.getElementById('deleteModal').addEventListener('click', (e) => { if (e.target.id === 'deleteModal') closeDeleteModal(); });
+
+// --- New: Report Modal Logic ---
+function openReportModal(itemId) {
+    const modal = document.getElementById('reportModal');
+    const title = document.getElementById('reportModalTitle');
+    const itemIdInput = document.getElementById('reportItemId');
+    
+    if (itemId) {
+        title.textContent = 'Report Item';
+        itemIdInput.value = itemId;
+    } else {
+        title.textContent = 'Report a Website Issue';
+        itemIdInput.value = '';
+    }
+    
+    document.getElementById('reportMessage').value = '';
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReportModal() {
+    const modal = document.getElementById('reportModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+document.getElementById('report-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const itemId = document.getElementById('reportItemId').value;
+    const message = document.getElementById('reportMessage').value.trim();
+
+    if (!message) {
+        showNotification('Please enter a message for your report.', 'error');
+        return;
+    }
+
+    const endpoint = itemId ? '/report-item' : '/report-issue';
+    const body = itemId ? { itemId, message } : { message };
+
+    try {
+        const response = await fetch(`https://x-marketplace.onrender.com${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to submit report');
+        }
+
+        showNotification('✅ Report submitted successfully', 'success');
+        closeReportModal();
+    } catch (err) {
+        console.error('Report submission error:', err);
+        showNotification(`❌ Error: ${err.message}`, 'error');
+    }
 });
+
+document.getElementById('reportModal').addEventListener('click', (e) => { if (e.target.id === 'reportModal') closeReportModal(); });
+
 
 // Mobile pop-up hint logic
 function showMobileHint() {
   const hint = document.getElementById('mobileHint');
   let popCount = 0;
-  
   function popHint() {
     if (popCount < 2) {
       hint.classList.add('show');
       setTimeout(() => {
         hint.classList.remove('show');
         popCount++;
-        if (popCount < 2) {
-          setTimeout(popHint, 5000);
-        }
+        if (popCount < 2) setTimeout(popHint, 5000);
       }, 5000);
     }
   }
-
   popHint();
 }
 
@@ -742,34 +702,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('searchInput').addEventListener('input', searchItems);
   document.getElementById('sortSelect').value = 'newest';
   handleFloatingButton();
-
-  // Check if on a mobile device to show the hint
-  if (window.innerWidth <= 600) {
-    showMobileHint();
-  }
+  if (window.innerWidth <= 600) showMobileHint();
 });
-
-// Performance optimization
-const observerOptions = { root: null, rootMargin: '50px', threshold: 0.1 };
-const imageObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const img = entry.target;
-      if (img.dataset.src) {
-        img.src = img.dataset.src;
-        img.removeAttribute('data-src');
-        imageObserver.unobserve(img);
-      }
-    }
-  });
-}, observerOptions);
 
 // Error handling
 window.addEventListener('error', (e) => {
   console.error('Unhandled error:', e.error);
   showNotification('Something went wrong. Please refresh the page.', 'error');
 });
-
 window.addEventListener('unhandledrejection', (e) => {
   console.error('Unhandled promise rejection:', e.reason);
   showNotification('Something went wrong. Please try again.', 'error');

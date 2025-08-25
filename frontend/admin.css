@@ -1,0 +1,91 @@
+/* Admin Panel Specific Styles */
+
+.admin-section {
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.login-container h2 {
+    margin-bottom: var(--spacing-lg);
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th, td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+th {
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.table-item-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.edit-btn, .delete-btn-admin {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.edit-btn {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.delete-btn-admin {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+.delete-btn-admin:hover {
+    background-color: #cc2f26; /* Darker red */
+}
+
+/* Edit Modal */
+.edit-modal {
+    max-width: 500px;
+}
+
+.edit-modal .modal-body {
+    padding: var(--spacing-xl);
+    background: var(--color-bg-primary);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}

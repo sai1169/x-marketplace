@@ -365,7 +365,6 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-/* New Apron Sub-Sort Styling */
 .apron-subsort {
   display: flex;
   flex-wrap: wrap;
@@ -526,7 +525,6 @@ body {
   opacity: 1; 
 }
 
-/* New CSS for the hover message */
 .image-hover-message {
   position: absolute;
   bottom: 0;
@@ -545,13 +543,6 @@ body {
   display: none;
 }
 
-/* Show the message on the image wrapper's hover for desktop */
-.image-wrapper:hover .image-hover-message {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* On desktop, show the message only on hover */
 @media (min-width: 601px) {
   .image-hover-message {
     display: block;
@@ -623,12 +614,17 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-/* New delete button style */
-.delete-btn {
+/* Updated card top actions */
+.card-actions-top {
   position: absolute;
   top: var(--spacing-sm);
   right: var(--spacing-sm);
   z-index: 10;
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.delete-btn, .report-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -645,7 +641,7 @@ body {
   transition: all var(--transition-fast);
 }
 
-.item-card:hover .delete-btn {
+.item-card:hover .delete-btn, .item-card:hover .report-btn {
   opacity: 1;
   transform: scale(1);
 }
@@ -655,6 +651,13 @@ body {
   color: white;
   border-color: var(--color-danger);
 }
+
+.report-btn:hover {
+  background: var(--color-warning);
+  color: white;
+  border-color: var(--color-warning);
+}
+
 
 .new-badge {
   position: absolute;
@@ -923,6 +926,26 @@ body {
   font-size: var(--font-size-sm);
 }
 
+/* New: Report Issue Button in Footer */
+.report-issue-btn {
+    display: inline-block;
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.report-issue-btn:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    border-color: var(--color-separator);
+}
+
+
 .image-modal {
   position: fixed;
   top: 0;
@@ -954,7 +977,14 @@ body {
   width: 800px;
   box-shadow: var(--shadow-modal);
   position: relative;
+  animation: modal-fade-in 0.3s ease-out;
 }
+
+@keyframes modal-fade-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 
 .modal-close {
   position: absolute;
@@ -1082,7 +1112,6 @@ body {
 .notification.success { border-left: 4px solid var(--color-success); }
 .notification.error { border-left: 4px solid var(--color-danger); }
 
-/* Mobile Hint Pop-up Styles */
 .mobile-hint {
   position: fixed;
   bottom: 80px;
@@ -1142,13 +1171,11 @@ body {
     padding: var(--spacing-sm);
   }
   
-  /* Make delete button always visible on mobile */
-  .delete-btn {
+  .delete-btn, .report-btn {
     opacity: 0.9;
     transform: scale(1);
   }
 
-  /* Remove in-card message for mobile */
   .image-hover-message {
     display: none;
   }
@@ -1158,7 +1185,6 @@ body {
   }
 }
 
-/* New CSS for Delete Confirmation Modal */
 .modal-content.delete-modal {
   max-width: 450px;
 }
@@ -1173,7 +1199,7 @@ body {
   background: var(--color-bg-primary);
   padding: var(--spacing-xl);
   height: auto;
-  text-align: center;
+  text-align: left;
   color: var(--color-text-primary);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }

@@ -16,6 +16,7 @@
       <nav class="nav">
         <a href="#item-list" class="nav-link">Browse</a>
         <a href="#add-item" class="nav-link">Sell Item</a>
+        <a href="admin.html" class="nav-link">Admin</a>
         <div class="theme-toggle" id="themeToggle">
           <span class="theme-icon sun">☀️</span>
           <span class="theme-icon moon">🌙</span>
@@ -228,6 +229,8 @@
   <footer class="footer">
     <div class="footer-content">
       <p>&copy; 2025 X-Marketplace. Built with gunde noppi. 🎓</p>
+      <!-- New: Report Issue Button -->
+      <button class="report-issue-btn" onclick="openReportModal(null)">Report a Website Issue</button>
     </div>
   </footer>
 
@@ -249,7 +252,7 @@
     </div>
   </div>
 
-  <!-- New: Delete Confirmation Modal -->
+  <!-- Delete Confirmation Modal -->
   <div id="deleteModal" class="image-modal">
     <div class="modal-content delete-modal">
       <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close delete modal">✕</button>
@@ -265,6 +268,26 @@
         </button>
       </div>
     </div>
+  </div>
+
+  <!-- New: Report Modal -->
+  <div id="reportModal" class="image-modal">
+      <div class="modal-content delete-modal">
+          <button class="modal-close" onclick="closeReportModal()">✕</button>
+          <div class="modal-header">
+              <h3 id="reportModalTitle" class="modal-title">Report Issue</h3>
+          </div>
+          <div class="modal-body delete-body">
+              <form id="report-form">
+                  <input type="hidden" id="reportItemId">
+                  <div class="form-group">
+                      <label for="reportMessage" class="form-label">Please describe the issue:</label>
+                      <textarea id="reportMessage" class="form-textarea" rows="4" required></textarea>
+                  </div>
+                  <button type="submit" class="submit-btn">Submit Report</button>
+              </form>
+          </div>
+      </div>
   </div>
 
   <script src="script.js"></script>
