@@ -270,14 +270,15 @@
     </div>
   </div>
 
-  <!-- New: Report Modal -->
+  <!-- Report Modal -->
   <div id="reportModal" class="image-modal">
       <div class="modal-content delete-modal">
           <button class="modal-close" onclick="closeReportModal()">✕</button>
           <div class="modal-header">
               <h3 id="reportModalTitle" class="modal-title">Report Issue</h3>
           </div>
-          <div class="modal-body delete-body">
+          <!-- Bug Fix: Added .report-body class -->
+          <div class="modal-body report-body">
               <form id="report-form">
                   <input type="hidden" id="reportItemId">
                   <div class="form-group">

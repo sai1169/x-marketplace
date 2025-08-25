@@ -614,7 +614,6 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-/* Updated card top actions */
 .card-actions-top {
   position: absolute;
   top: var(--spacing-sm);
@@ -926,7 +925,6 @@ body {
   font-size: var(--font-size-sm);
 }
 
-/* New: Report Issue Button in Footer */
 .report-issue-btn {
     display: inline-block;
     margin-top: var(--spacing-md);
@@ -1005,7 +1003,7 @@ body {
 }
 
 .modal-header {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-2xl) var(--spacing-lg) var(--spacing-lg);
   position: absolute;
   top: 0;
   left: 0;
@@ -1199,7 +1197,17 @@ body {
   background: var(--color-bg-primary);
   padding: var(--spacing-xl);
   height: auto;
-  text-align: left;
+  text-align: center;
   color: var(--color-text-primary);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* New Fix: Specific styling for the report modal body */
+.modal-body.report-body {
+    background: var(--color-bg-primary);
+    padding: var(--spacing-xl);
+    height: auto;
+    text-align: left; /* Ensures labels are left-aligned */
+    color: var(--color-text-primary);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }

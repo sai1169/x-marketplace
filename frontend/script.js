@@ -1,34 +1,6 @@
 let allItems = [], currentModalImages = [], currentModalIndex = 0, isLoading = true, searchTimeout;
 let itemIdToDelete = null; 
 
-// Theme management
-const themeToggle = document.getElementById('themeToggle');
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-const initialTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
-
-document.documentElement.setAttribute('data-theme', initialTheme);
-themeToggle.classList.toggle('active', initialTheme === 'dark');
-
-themeToggle.addEventListener('click', () => {
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  
-  themeToggle.style.transform = 'rotate(180deg)';
-  setTimeout(() => themeToggle.style.transform = 'rotate(0deg)', 300);
-  
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  themeToggle.classList.toggle('active', newTheme === 'dark');
-});
-
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-  if (!localStorage.getItem('theme')) {
-    const newTheme = e.matches ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    themeToggle.classList.toggle('active', newTheme === 'dark');
-  }
-});
-
 // Notification system
 function showNotification(message, type = 'success') {
   const notification = document.createElement('div');
@@ -618,7 +590,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
 
 document.getElementById('deleteModal').addEventListener('click', (e) => { if (e.target.id === 'deleteModal') closeDeleteModal(); });
 
-// --- New: Report Modal Logic ---
+// Report Modal Logic
 function openReportModal(itemId) {
     const modal = document.getElementById('reportModal');
     const title = document.getElementById('reportModalTitle');
@@ -696,7 +668,34 @@ function showMobileHint() {
   popHint();
 }
 
+// --- Main Initializer ---
 document.addEventListener('DOMContentLoaded', () => {
+  // Bug Fix: Moved theme management inside DOMContentLoaded
+  const themeToggle = document.getElementById('themeToggle');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const initialTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+
+  document.documentElement.setAttribute('data-theme', initialTheme);
+  themeToggle.classList.toggle('active', initialTheme === 'dark');
+
+  themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    themeToggle.classList.toggle('active', newTheme === 'dark');
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('theme')) {
+      const newTheme = e.matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      themeToggle.classList.toggle('active', newTheme === 'dark');
+    }
+  });
+  
+  // Load initial content and setup listeners
   loadItems();
   setupValidation();
   document.getElementById('searchInput').addEventListener('input', searchItems);
