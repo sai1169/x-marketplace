@@ -1211,3 +1211,23 @@ body {
     color: var(--color-text-primary);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
+
+/* Fix for form-based modals like delete and report */
+.modal-content.delete-modal .modal-header {
+    position: relative; /* Overrides absolute positioning */
+    background: none; /* Removes gradient */
+    color: var(--color-text-primary); /* Uses standard text color */
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-lg); /* Adjust padding for a standard header */
+}
+
+/* Ensure the close button is visible against the new background */
+.modal-content.delete-modal .modal-close {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+}
+
+.modal-content.delete-modal .modal-close:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
