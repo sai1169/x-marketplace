@@ -17,28 +17,44 @@ const editTitle = document.getElementById('edit-title');
 const editPrice = document.getElementById('edit-price');
 const editCategory = document.getElementById('edit-category');
 
-const MASTER_KEY = 'ramatej@1357';
 const API_URL = 'https://x-marketplace.onrender.com';
 
 // --- Authentication ---
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const key = masterKeyInput.value.trim();
+    loginError.classList.remove('show');
 
-    if (key === MASTER_KEY) {
+    try {
+        const response = await fetch(`${API_URL}/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ masterKey: key })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Login failed');
+        }
+
+        // If login is successful
         loginSection.style.display = 'none';
         adminDashboard.style.display = 'block';
-        sessionStorage.setItem('adminKey', key); // Store key for session
+        sessionStorage.setItem('adminKey', key); // Store key for the session to authenticate other requests
         loadAdminData();
-    } else {
-        loginError.textContent = 'Invalid master key.';
+
+    } catch (error) {
+        loginError.textContent = error.message;
         loginError.classList.add('show');
     }
 });
 
+
 // Check for session key on page load
 document.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('adminKey') === MASTER_KEY) {
+    // Note: The master key is not stored here anymore. We just check if a session is active.
+    if (sessionStorage.getItem('adminKey')) {
         loginSection.style.display = 'none';
         adminDashboard.style.display = 'block';
         loadAdminData();

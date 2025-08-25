@@ -25,6 +25,7 @@ const corsOptions = {
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.static('public')); // Serve static files from 'public' directory
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -67,25 +68,35 @@ const itemSchema = new mongoose.Schema({
 
 const Item = mongoose.model("Item", itemSchema);
 
-// New: Report Schema
 const reportSchema = new mongoose.Schema({
     message: { type: String, required: true },
-    itemId: { type: String, required: false }, // Not required for general issues
+    itemId: { type: String, required: false },
     timestamp: { type: Date, default: Date.now }
 });
 
 const Report = mongoose.model("Report", reportSchema);
 
-// --- Master Key Middleware for Admin Routes ---
+// --- Master Key Logic ---
+const MASTER_KEY = "ramatej@1357"; // Keep this secure, ideally as an environment variable
+
 const masterKeyAuth = (req, res, next) => {
-    const masterKey = "ramatej@1357";
     const providedKey = req.headers['x-master-key'];
-    if (providedKey === masterKey) {
+    if (providedKey === MASTER_KEY) {
         next();
     } else {
         res.status(401).json({ error: "Unauthorized: Invalid master key" });
     }
 };
+
+// --- Admin Login Route ---
+app.post("/admin/login", (req, res) => {
+    const { masterKey } = req.body;
+    if (masterKey === MASTER_KEY) {
+        res.status(200).json({ success: true, message: "Login successful" });
+    } else {
+        res.status(401).json({ success: false, message: "Invalid master key" });
+    }
+});
 
 
 // --- Item Routes ---
@@ -124,7 +135,7 @@ app.post("/items", upload.array("images", 5), async (req, res) => {
     });
 
     await newItem.save();
-    res.status(21).json({ message: "Item saved", item: newItem });
+    res.status(201).json({ message: "Item saved", item: newItem });
 
   } catch (error) {
     console.error("❌ Upload error:", error);
@@ -145,8 +156,7 @@ app.delete("/items/:id", async (req, res) => {
       return match ? match[1] : null;
     };
     
-    const masterKey = "ramatej@1357";
-    let isMatch = (deleteKey === masterKey);
+    let isMatch = (deleteKey === MASTER_KEY);
     if (!isMatch) {
       isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
     }
@@ -170,7 +180,6 @@ app.delete("/items/:id", async (req, res) => {
   }
 });
 
-// New: PUT route to update an item (Admin only)
 app.put("/items/:id", masterKeyAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -180,7 +189,7 @@ app.put("/items/:id", masterKeyAuth, async (req, res) => {
             title,
             price,
             category
-        }, { new: true }); // {new: true} returns the updated document
+        }, { new: true });
 
         if (!updatedItem) {
             return res.status(404).json({ error: "Item not found" });
