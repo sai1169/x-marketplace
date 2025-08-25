@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - X-Marketplace</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="admin.css">
 </head>
@@ -18,14 +15,13 @@
     </header>
 
     <main class="main">
-        <!-- Login Section -->
         <section id="login-section" class="admin-section">
             <div class="login-container">
                 <h2>Admin Login</h2>
                 <form id="login-form">
                     <div class="form-group">
                         <label for="master-key" class="form-label">Master Key</label>
-                        <input type="password" id="master-key" class="form-input" placeholder="Enter master key" required>
+                        <input type="password" id="master-key" class="form-input" required>
                         <div id="login-error" class="error-message"></div>
                     </div>
                     <button type="submit" class="submit-btn">Login</button>
@@ -33,52 +29,32 @@
             </div>
         </section>
 
-        <!-- Admin Dashboard (Hidden by default) -->
         <div id="admin-dashboard" style="display: none;">
-            <!-- Item Management Section -->
             <section id="item-management" class="admin-section">
                 <h2>Item Management</h2>
                 <div class="table-container">
                     <table id="items-table">
                         <thead>
-                            <tr>
-                                <th>Image</th>
-                                <th>Title</th>
-                                <th>Price</th>
-                                <th>Category</th>
-                                <th>Contact</th>
-                                <th>Actions</th>
-                            </tr>
+                            <tr><th>Image</th><th>Title</th><th>Price</th><th>Category</th><th>Contact</th><th>Actions</th></tr>
                         </thead>
-                        <tbody id="items-table-body">
-                            <!-- Items will be dynamically inserted here -->
-                        </tbody>
+                        <tbody id="items-table-body"></tbody>
                     </table>
                 </div>
             </section>
-
-            <!-- Message Log Section -->
             <section id="message-logs" class="admin-section">
                 <h2>Message Log</h2>
                 <div class="table-container">
                     <table id="reports-table">
                         <thead>
-                            <tr>
-                                <th>Message</th>
-                                <th>Item ID</th>
-                                <th>Timestamp</th>
-                            </tr>
+                            <tr><th>Message</th><th>Item ID</th><th>Timestamp</th></tr>
                         </thead>
-                        <tbody id="reports-table-body">
-                            <!-- Reports will be dynamically inserted here -->
-                        </tbody>
+                        <tbody id="reports-table-body"></tbody>
                     </table>
                 </div>
             </section>
         </div>
     </main>
 
-    <!-- Edit Item Modal -->
     <div id="editItemModal" class="image-modal">
         <div class="modal-content edit-modal">
             <button class="modal-close" onclick="closeEditModal()">✕</button>
@@ -88,30 +64,77 @@
             <div class="modal-body">
                 <form id="edit-item-form">
                     <input type="hidden" id="edit-item-id">
-                    <div class="form-group">
-                        <label for="edit-title" class="form-label">Title</label>
-                        <input type="text" id="edit-title" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-price" class="form-label">Price</label>
-                        <input type="text" id="edit-price" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-category" class="form-label">Category</label>
-                        <select id="edit-category" class="form-select" required>
-                            <option value="Aprons">Aprons</option>
-                            <option value="Books">Books</option>
-                            <option value="IOT/Project components">IOT/Project components</option>
-                            <option value="Lab">Lab Items</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label for="edit-title" class="form-label">Title</label><input type="text" id="edit-title" class="form-input" required></div>
+                    <div class="form-group"><label for="edit-price" class="form-label">Price</label><input type="text" id="edit-price" class="form-input" required></div>
+                    <div class="form-group"><label for="edit-category" class="form-label">Category</label><select id="edit-category" class="form-select" required><option value="Aprons">Aprons</option><option value="Books">Books</option><option value="IOT/Project components">IOT/Project components</option><option value="Lab">Lab Items</option><option value="Other">Other</option></select></div>
                     <button type="submit" class="submit-btn">Save Changes</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="admin.js"></script>
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const masterKeyInput = document.getElementById('master-key');
+        const loginError = document.getElementById('login-error');
+        const loginSection = document.getElementById('login-section');
+        const adminDashboard = document.getElementById('admin-dashboard');
+        const API_URL = 'https://x-marketplace.onrender.com';
+
+        async function loadProtectedScript(key) {
+            try {
+                const scriptResponse = await fetch(`${API_URL}/admin-script`, {
+                    headers: { 'x-master-key': key }
+                });
+
+                if (!scriptResponse.ok) {
+                    throw new Error('Could not load admin resources.');
+                }
+
+                const scriptText = await scriptResponse.text();
+                const scriptElement = document.createElement('script');
+                scriptElement.textContent = scriptText;
+                document.body.appendChild(scriptElement);
+
+                loginSection.style.display = 'none';
+                adminDashboard.style.display = 'block';
+            } catch (error) {
+                sessionStorage.removeItem('adminKey');
+                loginError.textContent = error.message;
+                loginError.classList.add('show');
+            }
+        }
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const key = masterKeyInput.value.trim();
+            loginError.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ masterKey: key })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Login failed');
+
+                sessionStorage.setItem('adminKey', key);
+                await loadProtectedScript(key);
+
+            } catch (error) {
+                loginError.textContent = error.message;
+                loginError.classList.add('show');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const existingKey = sessionStorage.getItem('adminKey');
+            if (existingKey) {
+                loadProtectedScript(existingKey);
+            }
+        });
+    </script>
 </body>
 </html>

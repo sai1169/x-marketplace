@@ -5,13 +5,14 @@ const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
+const path = require("path");
+const fs = require('fs'); // Import the File System module
 
 const app = express();
 const PORT = 3000;
 
-// Configure CORS to only allow specific origins
-const allowedOrigins = ["https://x-marketplace-one.vercel.app", "http://localhost:3000", "http://127.0.0.1:5501"]; // Added for local dev
-
+// --- Config ---
+const allowedOrigins = ["https://x-marketplace-one.vercel.app", "http://localhost:3000", "http://127.0.0.1:5501", null];
 const corsOptions = {
   origin: function (origin, callback) {
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
@@ -21,35 +22,29 @@ const corsOptions = {
     }
   }
 };
+const MASTER_KEY = "ramatej@1357";
 
-// Middleware
+// --- Middleware ---
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(express.static('public')); // Serve static files from 'public' directory
+// Serve static files from the 'frontend' directory
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log("✅ MongoDB connected"))
+// --- Database & Cloudinary Connection ---
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error("❌ MongoDB error:", err));
 
-// Cloudinary Config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Multer + Cloudinary Storage
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder: "x-marketplace",
-    allowed_formats: ["jpg", "png", "jpeg"],
-  },
+  params: { folder: "x-marketplace", allowed_formats: ["jpg", "png", "jpeg"] },
 });
-
 const upload = multer({ storage });
 
 // --- Schemas ---
@@ -65,7 +60,6 @@ const itemSchema = new mongoose.Schema({
   apronColor: String,
   deleteKeyHash: String
 });
-
 const Item = mongoose.model("Item", itemSchema);
 
 const reportSchema = new mongoose.Schema({
@@ -73,12 +67,10 @@ const reportSchema = new mongoose.Schema({
     itemId: { type: String, required: false },
     timestamp: { type: Date, default: Date.now }
 });
-
 const Report = mongoose.model("Report", reportSchema);
 
-// --- Master Key Logic ---
-const MASTER_KEY = "ramatej@1357"; // Keep this secure, ideally as an environment variable
 
+// --- Authentication Middleware ---
 const masterKeyAuth = (req, res, next) => {
     const providedKey = req.headers['x-master-key'];
     if (providedKey === MASTER_KEY) {
@@ -88,7 +80,8 @@ const masterKeyAuth = (req, res, next) => {
     }
 };
 
-// --- Admin Login Route ---
+
+// --- Admin Routes ---
 app.post("/admin/login", (req, res) => {
     const { masterKey } = req.body;
     if (masterKey === MASTER_KEY) {
@@ -96,6 +89,18 @@ app.post("/admin/login", (req, res) => {
     } else {
         res.status(401).json({ success: false, message: "Invalid master key" });
     }
+});
+
+// New: Secure route to serve the admin.js file
+app.get('/admin-script', masterKeyAuth, (req, res) => {
+    const scriptPath = path.join(__dirname, '..', 'frontend', 'admin.js');
+    fs.readFile(scriptPath, 'utf8', (err, data) => {
+        if (err) {
+            console.error("Error reading admin.js:", err);
+            return res.status(500).send('Could not load admin script.');
+        }
+        res.type('application/javascript').send(data);
+    });
 });
 
 
@@ -157,7 +162,7 @@ app.delete("/items/:id", async (req, res) => {
     };
     
     let isMatch = (deleteKey === MASTER_KEY);
-    if (!isMatch) {
+    if (!isMatch && item.deleteKeyHash) {
       isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
     }
 
