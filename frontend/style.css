@@ -155,7 +155,6 @@ body {
 }
 
 .theme-toggle:hover { transform: scale(1.05); }
-
 .theme-toggle.active { background: var(--color-primary); }
 
 .theme-toggle::before {
@@ -351,13 +350,14 @@ body {
   transition: left var(--transition-slow);
 }
 
-.filter-btn:hover::before { left: 100%; }
-
 .filter-btn:hover {
   background: var(--color-bg-tertiary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  color: var(--color-primary);
 }
+
+.filter-btn:hover::before { left: 100%; }
 
 .filter-btn.active {
   background: var(--color-primary);
@@ -406,7 +406,7 @@ body {
 
 .items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--spacing-lg);
 }
 
@@ -465,6 +465,7 @@ body {
   max-width: 500px;
   margin: 0 auto;
   border: 1px solid var(--color-border);
+  grid-column: 1 / -1; /* Span across all grid columns */
 }
 
 .empty-state h3 {
@@ -531,7 +532,7 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.6);
   color: white;
   text-align: center;
   font-size: var(--font-size-sm);
@@ -542,18 +543,11 @@ body {
   pointer-events: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   display: none;
-  font-weight: 500;
-  letter-spacing: 0.5px;
 }
 
 @media (min-width: 601px) {
   .image-hover-message {
     display: block;
-  }
-  
-  .image-wrapper:hover .image-hover-message {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -631,7 +625,6 @@ body {
   gap: var(--spacing-sm);
 }
 
-/* Updated Report and Delete Button Styles */
 .delete-btn, .report-btn {
   width: 32px;
   height: 32px;
@@ -639,91 +632,35 @@ body {
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   color: var(--color-text-tertiary);
-  font-size: 0; /* Hide text */
+  font-size: var(--font-size-md);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0.7; /* More visible by default */
+  opacity: 0;
   transform: scale(0.9);
   transition: all var(--transition-fast);
-  overflow: hidden;
-  position: relative;
-  box-shadow: var(--shadow-sm);
 }
 
-/* Desktop: Show buttons on hover */
-@media (min-width: 601px) {
-  .item-card:hover .delete-btn, 
-  .item-card:hover .report-btn {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Mobile: Always show buttons with tap target */
-@media (max-width: 600px) {
-  .delete-btn, .report-btn {
-    opacity: 0.9;
-    transform: scale(1);
-    width: 36px;
-    height: 36px;
-  }
-  
-  .item-card:hover .delete-btn, 
-  .item-card:hover .report-btn {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
-
-.delete-btn:hover, .report-btn:hover {
-  transform: scale(1.1);
+.item-card:hover .delete-btn, .item-card:hover .report-btn {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .delete-btn:hover {
   background: var(--color-danger);
+  color: white;
   border-color: var(--color-danger);
+  transform: scale(1.1);
 }
 
 .report-btn:hover {
   background: var(--color-warning);
+  color: white;
   border-color: var(--color-warning);
+  transform: scale(1.1);
 }
 
-/* Delete Icon SVG */
-.delete-btn::before {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'%3E%3C/path%3E%3Cpath d='M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2'%3E%3C/path%3E%3Cpath d='M10 11v6'%3E%3C/path%3E%3Cpath d='M14 11v6'%3E%3C/path%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: all var(--transition-fast);
-}
-
-.delete-btn:hover::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'%3E%3C/path%3E%3Cpath d='M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2'%3E%3C/path%3E%3Cpath d='M10 11v6'%3E%3C/path%3E%3Cpath d='M14 11v6'%3E%3C/path%3E%3C/svg%3E");
-}
-
-/* Report Icon SVG */
-.report-btn::before {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 11-5.93-9.14'%3E%3C/path%3E%3Cpolyline points='22 4 12 14.01 9 11.01'%3E%3C/polyline%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: all var(--transition-fast);
-}
-
-.report-btn:hover::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 11-5.93-9.14'%3E%3C/path%3E%3Cpolyline points='22 4 12 14.01 9 11.01'%3E%3C/polyline%3E%3C/svg%3E");
-}
 
 .new-badge {
   position: absolute;
@@ -922,7 +859,7 @@ body {
   margin-top: var(--spacing-lg);
 }
 
-.submit-btn:hover {
+.submit-btn:hover:not(:disabled) {
   background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
@@ -1008,7 +945,9 @@ body {
     background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
     border-color: var(--color-separator);
+    transform: translateY(-1px);
 }
+
 
 .image-modal {
   position: fixed;
@@ -1048,6 +987,7 @@ body {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
+
 
 .modal-close {
   position: absolute;
@@ -1198,55 +1138,111 @@ body {
   transform: translateX(-50%) translateY(0);
 }
 
+/* --- Mobile Friendliness & Responsiveness --- */
+
 @media (max-width: 768px) {
+  .main {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+
   .header-container {
     flex-direction: column;
     gap: var(--spacing-md);
+    padding: var(--spacing-md);
   }
+
   .nav {
     width: 100%;
     justify-content: center;
+    gap: var(--spacing-md);
   }
-  .items-grid { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
-  .modal-content { width: 95vw; }
+  
+  .nav-link {
+    padding: var(--spacing-sm);
+  }
+
+  .items-grid { 
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+    gap: var(--spacing-md);
+  }
+
+  .form-row { 
+    grid-template-columns: 1fr; 
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .modal-content { 
+    width: 95vw; 
+    max-height: 85vh;
+  }
+  
+  .modal-body {
+    height: 65vh;
+  }
+  
+  .filter-controls, .filters-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-buttons {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 600px) {
-  .items-grid { grid-template-columns: repeat(2, 1fr); }
-  .contact-btn {
-    padding: 6px 12px;
-    font-size: 14px;
-    border-radius: 6px;
-  }
-  .item-card h3 { font-size: var(--font-size-md); }
-  .price { font-size: var(--font-size-lg); }
-  .apron-details {
-    flex-direction: column;
+  .items-grid { 
+    grid-template-columns: 1fr 1fr; 
     gap: var(--spacing-sm);
   }
+  
+  .item-card-content {
+      padding: var(--spacing-md);
+  }
+
+  .contact-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .item-card h3 { font-size: var(--font-size-md); }
+  .price { font-size: var(--font-size-lg); }
+  
+  .apron-details {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    align-items: flex-start;
+  }
+  
   .apron-detail {
     font-size: var(--font-size-xs);
-    padding: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
   }
+  
   .form-input, .form-select, .form-textarea {
     font-size: var(--font-size-sm);
     padding: var(--spacing-sm);
   }
   
   .delete-btn, .report-btn {
-    opacity: 0.9;
+    opacity: 0.9; /* Make buttons visible on mobile without hover */
     transform: scale(1);
   }
+
   .image-hover-message {
     display: none;
   }
-  
-  .item-card-content {
-      padding-top: var(--spacing-lg);
-  }
 }
 
+@media (max-width: 400px) {
+    .items-grid {
+        grid-template-columns: 1fr; /* Single column on very small screens */
+    }
+}
+
+
+/* --- Modal Fixes --- */
 .modal-content.delete-modal {
   max-width: 450px;
 }

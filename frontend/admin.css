@@ -20,13 +20,14 @@
 }
 
 .table-container {
-    overflow-x: auto;
+    overflow-x: auto; /* Ensures table is scrollable on small screens */
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
+    min-width: 600px; /* Prevents table content from wrapping too aggressively */
 }
 
 th, td {
@@ -68,6 +69,8 @@ th {
 
 .edit-btn:hover {
     background-color: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .delete-btn-admin {
@@ -77,6 +80,8 @@ th {
 
 .delete-btn-admin:hover {
     background-color: #cc2f26; /* Darker red */
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Edit Modal */
@@ -88,4 +93,10 @@ th {
     padding: var(--spacing-xl);
     background: var(--color-bg-primary);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+@media (max-width: 768px) {
+    .admin-section {
+        padding: var(--spacing-lg);
+    }
 }
