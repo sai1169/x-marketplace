@@ -64,7 +64,8 @@ const Item = mongoose.model("Item", itemSchema);
 
 const reportSchema = new mongoose.Schema({
     message: { type: String, required: true },
-    itemId: { type: String, required: false },
+    // UPDATED: Changed from itemId to a reference to the Item model
+    item: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: false },
     timestamp: { type: Date, default: Date.now }
 });
 const Report = mongoose.model("Report", reportSchema);
@@ -215,7 +216,12 @@ app.post("/report-item", async (req, res) => {
         if (!itemId || !message) {
             return res.status(400).json({ error: "Item ID and message are required." });
         }
-        const newReport = new Report({ itemId, message });
+        // UPDATED: Check if item exists before creating report
+        const itemExists = await Item.findById(itemId);
+        if (!itemExists) {
+            return res.status(404).json({ error: "Item not found" });
+        }
+        const newReport = new Report({ message, item: itemId });
         await newReport.save();
         res.status(201).json({ message: "Item reported successfully." });
     } catch (error) {
@@ -241,7 +247,8 @@ app.post("/report-issue", async (req, res) => {
 
 app.get("/reports", masterKeyAuth, async (req, res) => {
     try {
-        const reports = await Report.find().sort({ timestamp: -1 });
+        // UPDATED: Populate the 'item' field to include its title and images
+        const reports = await Report.find().populate('item', 'title images').sort({ timestamp: -1 });
         res.json(reports);
     } catch (error) {
         console.error("❌ Get reports error:", error);

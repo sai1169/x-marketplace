@@ -67,13 +67,25 @@
             reportsTableBody.innerHTML = `<tr><td colspan="3">No reports found.</td></tr>`;
             return;
         }
-        reportsTableBody.innerHTML = reports.map(report => `
-            <tr>
-                <td>${report.message}</td>
-                <td>${report.itemId || 'N/A'}</td>
-                <td>${new Date(report.timestamp).toLocaleString()}</td>
-            </tr>
-        `).join('');
+        // UPDATED: This function now renders the item's image and title instead of the ID.
+        reportsTableBody.innerHTML = reports.map(report => {
+            const itemInfo = report.item
+                ? `
+                    <div class="report-item-info">
+                        <img src="${report.item.images[0]}" alt="${report.item.title}" class="table-item-img">
+                        <span>${report.item.title}</span>
+                    </div>
+                  `
+                : 'N/A (Website Issue)';
+
+            return `
+                <tr>
+                    <td>${report.message}</td>
+                    <td>${itemInfo}</td>
+                    <td>${new Date(report.timestamp).toLocaleString()}</td>
+                </tr>
+            `;
+        }).join('');
     }
 
     // --- Admin Actions ---
