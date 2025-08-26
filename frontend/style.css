@@ -735,7 +735,7 @@ body {
 
 .field-hint {
   font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
+  color: #5856D6;
   margin-top: var(--spacing-xs);
 }
 
