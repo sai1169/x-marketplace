@@ -637,14 +637,13 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0;
-  transform: scale(0.9);
+  opacity: 0.8; /* Made visible by default */
+  transform: scale(1);
   transition: all var(--transition-fast);
 }
 
 .item-card:hover .delete-btn, .item-card:hover .report-btn {
   opacity: 1;
-  transform: scale(1);
 }
 
 .delete-btn:hover {
