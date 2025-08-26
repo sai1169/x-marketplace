@@ -631,6 +631,7 @@ body {
   gap: var(--spacing-sm);
 }
 
+/* Updated Report and Delete Button Styles */
 .delete-btn, .report-btn {
   width: 32px;
   height: 32px;
@@ -638,7 +639,7 @@ body {
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   color: var(--color-text-tertiary);
-  font-size: var(--font-size-md);
+  font-size: 0; /* Hide text */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -646,6 +647,8 @@ body {
   opacity: 0;
   transform: scale(0.9);
   transition: all var(--transition-fast);
+  overflow: hidden;
+  position: relative;
 }
 
 .item-card:hover .delete-btn, .item-card:hover .report-btn {
@@ -653,16 +656,52 @@ body {
   transform: scale(1);
 }
 
+.delete-btn:hover, .report-btn:hover {
+  transform: scale(1.1);
+}
+
 .delete-btn:hover {
   background: var(--color-danger);
-  color: white;
   border-color: var(--color-danger);
 }
 
 .report-btn:hover {
   background: var(--color-warning);
-  color: white;
   border-color: var(--color-warning);
+}
+
+/* Delete Icon SVG */
+.delete-btn::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'%3E%3C/path%3E%3Cpath d='M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2'%3E%3C/path%3E%3Cpath d='M10 11v6'%3E%3C/path%3E%3Cpath d='M14 11v6'%3E%3C/path%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: all var(--transition-fast);
+}
+
+.delete-btn:hover::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'%3E%3C/path%3E%3Cpath d='M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2'%3E%3C/path%3E%3Cpath d='M10 11v6'%3E%3C/path%3E%3Cpath d='M14 11v6'%3E%3C/path%3E%3C/svg%3E");
+}
+
+/* Report Icon SVG */
+.report-btn::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 11-5.93-9.14'%3E%3C/path%3E%3Cpolyline points='22 4 12 14.01 9 11.01'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: all var(--transition-fast);
+}
+
+.report-btn:hover::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 11-5.93-9.14'%3E%3C/path%3E%3Cpolyline points='22 4 12 14.01 9 11.01'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 .new-badge {

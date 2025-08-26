@@ -146,7 +146,6 @@ function renderItems(items) {
     container.innerHTML = `<div class="empty-state"><h3>🔍 No items found</h3><p>Try adjusting your search terms or filters to find what you're looking for.</p></div>`;
     return;
   }
-
   container.innerHTML = items.map((item, index) => {
     const price = item.price == 0 || item.price.toString().toLowerCase().includes("free") ? "Free" : `₹${item.price}`;
     const isFree = price === "Free";
@@ -164,8 +163,8 @@ function renderItems(items) {
     return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
       <div class="card-actions-top">
-        <button class="report-btn" onclick="openReportModal('${item._id}')" aria-label="Report Item">⚠️</button>
-        <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item">❌</button>
+        <button class="report-btn" onclick="openReportModal('${item._id}')" aria-label="Report Item"></button>
+        <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item"></button>
       </div>
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
         <img src="${images[0]}" alt="${item.title}" loading="lazy" />
