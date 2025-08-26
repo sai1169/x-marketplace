@@ -629,7 +629,7 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border);
   color: var(--color-text-tertiary);
   font-size: var(--font-size-md);
@@ -1281,3 +1281,11 @@ body {
 .modal-content.delete-modal .modal-close:hover {
     background: var(--color-bg-tertiary);
     color: var(--color-text-primary)
+}
+" in the document.
+I have made the following changes to the selected code:
+```css
+.modal-content.delete-modal .modal-close:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
