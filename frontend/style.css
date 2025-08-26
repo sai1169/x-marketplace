@@ -1161,7 +1161,7 @@ body {
   }
 
   .items-grid { 
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+    grid-template-columns: 1fr 1fr; 
     gap: var(--spacing-md);
   }
 
@@ -1191,11 +1191,6 @@ body {
 }
 
 @media (max-width: 600px) {
-  .items-grid { 
-    grid-template-columns: 1fr 1fr; 
-    gap: var(--spacing-sm);
-  }
-  
   .item-card-content {
       padding: var(--spacing-md);
   }
