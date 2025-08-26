@@ -146,6 +146,7 @@ function renderItems(items) {
     container.innerHTML = `<div class="empty-state"><h3>🔍 No items found</h3><p>Try adjusting your search terms or filters to find what you're looking for.</p></div>`;
     return;
   }
+
   container.innerHTML = items.map((item, index) => {
     const price = item.price == 0 || item.price.toString().toLowerCase().includes("free") ? "Free" : `₹${item.price}`;
     const isFree = price === "Free";
@@ -163,8 +164,12 @@ function renderItems(items) {
     return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
       <div class="card-actions-top">
-        <button class="report-btn" onclick="openReportModal('${item._id}')" aria-label="Report Item"></button>
-        <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item"></button>
+        <button class="report-btn" onclick="openReportModal('${item._id}')" aria-label="Report Item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="delete-btn" onclick="openDeleteModal('${item._id}')" aria-label="Delete Item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        </button>
       </div>
       <div class="image-wrapper" onclick="openImageModal('${item.title}', ${JSON.stringify(images).replace(/"/g, '&quot;')})">
         <img src="${images[0]}" alt="${item.title}" loading="lazy" />
