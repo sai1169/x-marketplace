@@ -155,6 +155,7 @@ body {
 }
 
 .theme-toggle:hover { transform: scale(1.05); }
+
 .theme-toggle.active { background: var(--color-primary); }
 
 .theme-toggle::before {
@@ -530,7 +531,7 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   color: white;
   text-align: center;
   font-size: var(--font-size-sm);
@@ -541,11 +542,18 @@ body {
   pointer-events: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   display: none;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 @media (min-width: 601px) {
   .image-hover-message {
     display: block;
+  }
+  
+  .image-wrapper:hover .image-hover-message {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -656,7 +664,6 @@ body {
   color: white;
   border-color: var(--color-warning);
 }
-
 
 .new-badge {
   position: absolute;
@@ -943,7 +950,6 @@ body {
     border-color: var(--color-separator);
 }
 
-
 .image-modal {
   position: fixed;
   top: 0;
@@ -982,7 +988,6 @@ body {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
-
 
 .modal-close {
   position: absolute;
@@ -1173,7 +1178,6 @@ body {
     opacity: 0.9;
     transform: scale(1);
   }
-
   .image-hover-message {
     display: none;
   }
@@ -1202,26 +1206,23 @@ body {
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
-/* New Fix: Specific styling for the report modal body */
 .modal-body.report-body {
     background: var(--color-bg-primary);
     padding: var(--spacing-xl);
     height: auto;
-    text-align: left; /* Ensures labels are left-aligned */
+    text-align: left;
     color: var(--color-text-primary);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
-/* Fix for form-based modals like delete and report */
 .modal-content.delete-modal .modal-header {
-    position: relative; /* Overrides absolute positioning */
-    background: none; /* Removes gradient */
-    color: var(--color-text-primary); /* Uses standard text color */
+    position: relative;
+    background: none;
+    color: var(--color-text-primary);
     border-bottom: 1px solid var(--color-border);
-    padding: var(--spacing-lg); /* Adjust padding for a standard header */
+    padding: var(--spacing-lg);
 }
 
-/* Ensure the close button is visible against the new background */
 .modal-content.delete-modal .modal-close {
     background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
