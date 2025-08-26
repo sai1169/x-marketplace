@@ -629,7 +629,7 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--color-bg-primary);
+  background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   color: var(--color-text-tertiary);
   font-size: var(--font-size-md);
@@ -637,7 +637,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0.8; /* Made visible by default */
+  opacity: 0.9;
   transform: scale(1);
   transition: all var(--transition-fast);
 }
@@ -1224,11 +1224,6 @@ body {
     padding: var(--spacing-sm);
   }
   
-  .delete-btn, .report-btn {
-    opacity: 0.9; /* Make buttons visible on mobile without hover */
-    transform: scale(1);
-  }
-
   .image-hover-message {
     display: none;
   }
@@ -1285,5 +1280,4 @@ body {
 
 .modal-content.delete-modal .modal-close:hover {
     background: var(--color-bg-tertiary);
-    color: var(--color-text-primary);
-}
+    color: var(--color-text-primary)
