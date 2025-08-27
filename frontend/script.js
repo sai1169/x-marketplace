@@ -3,6 +3,12 @@ let itemIdToDelete = null;
 let itemRecaptchaWidgetId;
 let reportRecaptchaWidgetId;
 
+// --- NEW: API Secret Key ---
+// IMPORTANT: In a real-world production app, this key should be managed by a build process
+// or fetched from a secure endpoint, not hardcoded directly. For this project's scope,
+// hardcoding is acceptable, but be aware of the security implications.
+const API_SECRET_KEY = "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3"; 
+
 // --- reCAPTCHA Functions ---
 function onloadRecaptchaCallback() {
     const itemRecaptchaContainer = document.getElementById('g-recaptcha-item');
@@ -128,7 +134,12 @@ function loadItems() {
   showSkeletonLoaders();
   updateItemsCount('Loading...');
   
-  fetch("https://x-marketplace.onrender.com/items")
+  // UPDATED: Added x-api-secret-key header
+  fetch("https://x-marketplace.onrender.com/items", {
+    headers: {
+      'x-api-secret-key': API_SECRET_KEY
+    }
+  })
     .then(res => {
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       return res.json();
@@ -459,7 +470,6 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   formData.append("timestamp", Date.now());
   formData.append("deleteKey", elements.deleteKey.value.trim());
   
-  // UPDATED: Append reCAPTCHA token
   formData.append('g-recaptcha-response', grecaptcha.getResponse(itemRecaptchaWidgetId));
 
   if (elements.categoryDescription.value.trim()) formData.append("categoryDescription", elements.categoryDescription.value.trim());
@@ -470,7 +480,14 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   for (let i = 0; i < elements.image.files.length; i++) formData.append("images", elements.image.files[i]);
 
   try {
-    const response = await fetch("https://x-marketplace.onrender.com/items", { method: "POST", body: formData });
+    // UPDATED: Added x-api-secret-key header
+    const response = await fetch("https://x-marketplace.onrender.com/items", { 
+        method: "POST", 
+        headers: {
+            'x-api-secret-key': API_SECRET_KEY
+        },
+        body: formData 
+    });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `HTTP error ${response.status}`);
@@ -485,9 +502,9 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     console.error("Upload error:", err);
     showNotification(`❌ Upload failed: ${err.message}`, "error");
   } finally {
-    submitBtn.disabled = true; // Keep it disabled
+    submitBtn.disabled = true;
     submitBtn.innerHTML = originalContent;
-    grecaptcha.reset(itemRecaptchaWidgetId); // Reset the reCAPTCHA
+    grecaptcha.reset(itemRecaptchaWidgetId);
   }
 });
 
@@ -595,9 +612,13 @@ document.getElementById('delete-form').addEventListener('submit', async (e) => {
     confirmBtn.innerHTML = `<div class="loader"></div> <span>Deleting...</span>`;
 
     try {
+        // UPDATED: Added x-api-secret-key header
         const response = await fetch(`https://x-marketplace.onrender.com/items/${itemIdToDelete}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-secret-key': API_SECRET_KEY
+            },
             body: JSON.stringify({ deleteKey })
         });
         
@@ -668,9 +689,13 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
     submitBtn.disabled = true;
 
     try {
+        // UPDATED: Added x-api-secret-key header
         const response = await fetch(`https://x-marketplace.onrender.com${endpoint}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-secret-key': API_SECRET_KEY
+            },
             body: JSON.stringify(body)
         });
 
@@ -735,7 +760,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  // UPDATED: Delete Key Hint Logic
   const deleteKeyInput = document.getElementById('deleteKey');
   const deleteKeyHint = document.getElementById('deleteKeyHint');
 

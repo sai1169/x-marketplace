@@ -6,19 +6,23 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
 const axios = require("axios");
+const rateLimit = require('express-rate-limit'); // Import rate-limit
 
 const app = express();
-const PORT = process.env.PORT || 3000; // ✅ Use Render port
+const PORT = process.env.PORT || 3000;
 
 // --- Config ---
 const allowedOrigins = [
-  "https://x-marketplace-one.vercel.app", // your frontend on Vercel
+  "https://x-marketplace-one.vercel.app",
   "http://localhost:3000",
   "http://127.0.0.1:5501",
-  null,
 ];
 const corsOptions = {
   origin: function (origin, callback) {
+    // Disallow requests with no origin (like from Postman, curl, etc.) in production
+    if (process.env.NODE_ENV === 'production' && !origin) {
+        return callback(new Error("Not allowed by CORS"));
+    }
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
     } else {
@@ -26,13 +30,22 @@ const corsOptions = {
     }
   },
 };
-const MASTER_KEY = process.env.ADMIN_PASSWORD; // ✅ safer than hardcoding
+const MASTER_KEY = process.env.ADMIN_PASSWORD;
+const API_SECRET_KEY = process.env.API_SECRET_KEY; // Load secret key from environment
+
+// --- Rate Limiting Middleware ---
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100, // Limit each IP to 100 requests per windowMs
+	standardHeaders: true,
+	legacyHeaders: false,
+  message: 'Too many requests from this IP, please try again after 15 minutes.'
+});
 
 // --- Middleware ---
+app.use(limiter); // Apply the rate limiting middleware to all requests
 app.use(cors(corsOptions));
 app.use(express.json());
-
-// ✅ Removed express.static → backend no longer serves frontend
 
 // --- Database & Cloudinary Connection ---
 mongoose
@@ -111,6 +124,21 @@ const masterKeyAuth = (req, res, next) => {
   }
 };
 
+// --- NEW: API Secret Key Verification Middleware ---
+const verifyApiSecret = (req, res, next) => {
+    const providedSecret = req.headers['x-api-secret-key'];
+    if (providedSecret && providedSecret === API_SECRET_KEY) {
+        return next();
+    }
+    // Also allow master key for admin actions to bypass this check
+    const providedMasterKey = req.headers["x-master-key"];
+    if (providedMasterKey && providedMasterKey === MASTER_KEY) {
+        return next();
+    }
+    res.status(403).json({ error: "Forbidden: Invalid API secret" });
+};
+
+
 // --- Root Route (API only) ---
 app.get("/", (req, res) => {
   res.json({ status: "API running", service: "x-marketplace backend" });
@@ -127,7 +155,8 @@ app.post("/admin/login", (req, res) => {
 });
 
 // --- Item Routes ---
-app.get("/items", async (req, res) => {
+// SECURED: Added verifyApiSecret middleware
+app.get("/items", verifyApiSecret, async (req, res) => {
   try {
     const items = await Item.find().sort({ timestamp: -1 });
     res.json(items);
@@ -137,7 +166,8 @@ app.get("/items", async (req, res) => {
   }
 });
 
-app.post("/items", upload.array("images", 5), verifyRecaptcha, async (req, res) => {
+// SECURED: Added verifyApiSecret middleware
+app.post("/items", verifyApiSecret, upload.array("images", 5), verifyRecaptcha, async (req, res) => {
   try {
     const {
       title,
@@ -180,7 +210,8 @@ app.post("/items", upload.array("images", 5), verifyRecaptcha, async (req, res) 
   }
 });
 
-app.delete("/items/:id", async (req, res) => {
+// SECURED: Added verifyApiSecret middleware
+app.delete("/items/:id", verifyApiSecret, async (req, res) => {
   try {
     const { id } = req.params;
     const { deleteKey } = req.body;
@@ -246,7 +277,8 @@ app.put("/items/:id", masterKeyAuth, async (req, res) => {
 });
 
 // --- Report Routes ---
-app.post("/report-item", verifyRecaptcha, async (req, res) => {
+// SECURED: Added verifyApiSecret middleware
+app.post("/report-item", verifyApiSecret, verifyRecaptcha, async (req, res) => {
   try {
     const { itemId, message } = req.body;
     if (!itemId || !message) {
@@ -265,7 +297,8 @@ app.post("/report-item", verifyRecaptcha, async (req, res) => {
   }
 });
 
-app.post("/report-issue", verifyRecaptcha, async (req, res) => {
+// SECURED: Added verifyApiSecret middleware
+app.post("/report-issue", verifyApiSecret, verifyRecaptcha, async (req, res) => {
   try {
     const { message } = req.body;
     if (!message) {
