@@ -227,7 +227,7 @@
 
   <footer class="footer">
     <div class="footer-content">
-      <p>&copy;  🎓</p>
+      <p>&copy; 2025 X-Marketplace. Built with gunde noppi. 🎓</p>
       <!-- New: Report Issue Button -->
       <button class="report-issue-btn" onclick="openReportModal(null)">Report a Website Issue</button>
     </div>
@@ -254,18 +254,22 @@
   <!-- Delete Confirmation Modal -->
   <div id="deleteModal" class="image-modal">
     <div class="modal-content delete-modal">
-      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close delete modal">✕</button>
-      <div class="modal-header delete-header">
-        <h3 class="modal-title">Delete Item</h3>
-      </div>
-      <div class="modal-body delete-body">
-        <p>Please enter the <b>delete key</b> to confirm deletion of this item. This action cannot be undone.</p>
-        <input type="password" id="deleteKeyInput" class="form-input" placeholder="Enter delete key" />
-        <div class="error-message" id="deleteKeyModalError">Incorrect key. Please try again.</div>
-        <button id="confirmDeleteBtn" class="submit-btn" style="background: var(--color-danger); width: 100%;">
-          Confirm Delete
-        </button>
-      </div>
+        <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close delete modal">✕</button>
+        <div class="modal-header">
+            <h3 class="modal-title">Delete Item</h3>
+        </div>
+        <div class="modal-body report-body">
+            <form id="delete-form">
+                <div class="form-group">
+                    <label for="deleteKeyInput" class="form-label">Enter the delete code created for this item.</label>
+                    <input type="password" id="deleteKeyInput" class="form-input" placeholder="Enter delete key" required />
+                    <div class="error-message" id="deleteKeyModalError">Incorrect key. Please try again.</div>
+                </div>
+                <button id="confirmDeleteBtn" type="submit" class="submit-btn" style="background: var(--color-danger);">
+                    Confirm Delete
+                </button>
+            </form>
+        </div>
     </div>
   </div>
 
@@ -276,7 +280,6 @@
           <div class="modal-header">
               <h3 id="reportModalTitle" class="modal-title">Report Issue</h3>
           </div>
-          <!-- Bug Fix: Added .report-body class -->
           <div class="modal-body report-body">
               <form id="report-form">
                   <input type="hidden" id="reportItemId">

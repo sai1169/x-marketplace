@@ -550,13 +550,14 @@ function closeDeleteModal() {
     document.body.style.overflow = 'auto';
 }
 
-document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+document.getElementById('delete-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
     const deleteKeyInput = document.getElementById('deleteKeyInput');
     const deleteKey = deleteKeyInput.value.trim();
     const errorElement = document.getElementById('deleteKeyModalError');
 
-    if (deleteKey.length < 6) {
-        errorElement.textContent = 'Key must be at least 6 characters.';
+    if (deleteKey.length < 1) {
+        errorElement.textContent = 'Please enter a delete key.';
         errorElement.classList.add('show');
         return;
     } else {
@@ -588,7 +589,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
         errorElement.classList.add('show');
     } finally {
         confirmBtn.disabled = false;
-        confirmBtn.innerHTML = originalText;
+        confirmBtn.innerHTML = "Confirm Delete";
     }
 });
 
