@@ -62,9 +62,11 @@ const itemSchema = new mongoose.Schema({
 });
 const Item = mongoose.model("Item", itemSchema);
 
+// --- CRITICAL CHANGE 1: Report Schema ---
+// The 'item' field is now a reference to an 'Item' document.
+// This allows us to link reports directly to items in the database.
 const reportSchema = new mongoose.Schema({
     message: { type: String, required: true },
-    // UPDATED: Changed from itemId to a reference to the Item model
     item: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: false },
     timestamp: { type: Date, default: Date.now }
 });
@@ -92,7 +94,6 @@ app.post("/admin/login", (req, res) => {
     }
 });
 
-// New: Secure route to serve the admin.js file
 app.get('/admin-script', masterKeyAuth, (req, res) => {
     const scriptPath = path.join(__dirname, '..', 'frontend', 'admin.js');
     fs.readFile(scriptPath, 'utf8', (err, data) => {
@@ -216,7 +217,6 @@ app.post("/report-item", async (req, res) => {
         if (!itemId || !message) {
             return res.status(400).json({ error: "Item ID and message are required." });
         }
-        // UPDATED: Check if item exists before creating report
         const itemExists = await Item.findById(itemId);
         if (!itemExists) {
             return res.status(404).json({ error: "Item not found" });
@@ -247,7 +247,9 @@ app.post("/report-issue", async (req, res) => {
 
 app.get("/reports", masterKeyAuth, async (req, res) => {
     try {
-        // UPDATED: Populate the 'item' field to include its title and images
+        // --- CRITICAL CHANGE 2: Populate Report Data ---
+        // .populate() tells Mongoose to look up the item referenced by its ID
+        // and replace it with the actual item document (or just the fields we need).
         const reports = await Report.find().populate('item', 'title images').sort({ timestamp: -1 });
         res.json(reports);
     } catch (error) {

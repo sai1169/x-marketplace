@@ -84,6 +84,13 @@ th {
     box-shadow: var(--shadow-sm);
 }
 
+/* NEW: Styles for the reported item info in the message log */
+.report-item-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
 /* Edit Modal */
 .edit-modal {
     max-width: 500px;
