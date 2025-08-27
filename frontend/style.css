@@ -739,6 +739,12 @@ body {
   margin-top: var(--spacing-xs);
 }
 
+/* NEW: Styles for the delete key hint */
+.field-hint.focused {
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
 .error-message {
   color: var(--color-danger);
   font-size: var(--font-size-sm);
@@ -1161,6 +1167,7 @@ body {
   }
 
   .items-grid { 
+    grid-template-columns: 1fr 1fr; 
     gap: var(--spacing-md);
   }
 
@@ -1190,11 +1197,6 @@ body {
 }
 
 @media (max-width: 600px) {
-  .items-grid { 
-    grid-template-columns: 1fr 1fr; 
-    gap: var(--spacing-sm);
-  }
-  
   .item-card-content {
       padding: var(--spacing-md);
   }
@@ -1279,5 +1281,5 @@ body {
 
 .modal-content.delete-modal .modal-close:hover {
     background: var(--color-bg-tertiary);
-    color: var(--color-text-primary)
+    color: var(--color-text-primary);
 }
