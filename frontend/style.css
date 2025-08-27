@@ -934,6 +934,22 @@ body {
   font-size: var(--font-size-sm);
 }
 
+.footer-content p {
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.footer-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-fast);
+}
+
+.footer-link:hover {
+    color: var(--color-primary-hover);
+    text-decoration: underline;
+}
+
 .report-issue-btn {
     display: inline-block;
     margin-top: var(--spacing-md);
