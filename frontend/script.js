@@ -1,7 +1,30 @@
 let allItems = [], currentModalImages = [], currentModalIndex = 0, isLoading = true, searchTimeout;
 let itemIdToDelete = null; 
+let itemRecaptchaWidgetId;
+let reportRecaptchaWidgetId;
 
-// Notification system
+// --- reCAPTCHA Functions ---
+function onloadRecaptchaCallback() {
+    const itemRecaptchaContainer = document.getElementById('g-recaptcha-item');
+    if (itemRecaptchaContainer) {
+        itemRecaptchaWidgetId = grecaptcha.render('g-recaptcha-item', {
+            'sitekey': 'YOUR_RECAPTCHA_SITE_KEY', // <-- IMPORTANT: REPLACE WITH YOUR SITE KEY
+            'callback': () => document.getElementById('submitItemBtn').disabled = false,
+            'expired-callback': () => document.getElementById('submitItemBtn').disabled = true
+        });
+    }
+
+    const reportRecaptchaContainer = document.getElementById('g-recaptcha-report');
+    if (reportRecaptchaContainer) {
+        reportRecaptchaWidgetId = grecaptcha.render('g-recaptcha-report', {
+            'sitekey': 'YOUR_RECAPTCHA_SITE_KEY', // <-- IMPORTANT: REPLACE WITH YOUR SITE KEY
+            'callback': () => document.getElementById('submitReportBtn').disabled = false,
+            'expired-callback': () => document.getElementById('submitReportBtn').disabled = true
+        });
+    }
+}
+
+// --- Notification system ---
 function showNotification(message, type = 'success') {
   const notification = document.createElement('div');
   notification.className = `notification ${type}`;
@@ -425,7 +448,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     if (!file.type.startsWith('image/')) { showNotification("Only image files are allowed", "error"); return; }
   }
 
-  const submitBtn = document.querySelector(".submit-btn");
+  const submitBtn = document.getElementById("submitItemBtn");
   submitBtn.disabled = true;
   const originalContent = submitBtn.innerHTML;
   submitBtn.innerHTML = `<div class="loader"></div> <span>Uploading...</span>`;
@@ -437,6 +460,9 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   formData.append("category", elements.category.value);
   formData.append("timestamp", Date.now());
   formData.append("deleteKey", elements.deleteKey.value.trim());
+  
+  // UPDATED: Append reCAPTCHA token
+  formData.append('g-recaptcha-response', grecaptcha.getResponse(itemRecaptchaWidgetId));
 
   if (elements.categoryDescription.value.trim()) formData.append("categoryDescription", elements.categoryDescription.value.trim());
   if (elements.category.value === 'Aprons') {
@@ -449,7 +475,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     const response = await fetch("https://x-marketplace.onrender.com/items", { method: "POST", body: formData });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error ${response.status}`);
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
     }
     showNotification("✨ Item listed successfully!", "success");
     document.getElementById("item-form").reset();
@@ -461,8 +487,9 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     console.error("Upload error:", err);
     showNotification(`❌ Upload failed: ${err.message}`, "error");
   } finally {
-    submitBtn.disabled = false;
+    submitBtn.disabled = true; // Keep it disabled
     submitBtn.innerHTML = originalContent;
+    grecaptcha.reset(itemRecaptchaWidgetId); // Reset the reCAPTCHA
   }
 });
 
@@ -631,7 +658,16 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
     }
 
     const endpoint = itemId ? '/report-item' : '/report-issue';
-    const body = itemId ? { itemId, message } : { message };
+    const body = { 
+        message,
+        'g-recaptcha-response': grecaptcha.getResponse(reportRecaptchaWidgetId)
+    };
+    if (itemId) {
+        body.itemId = itemId;
+    }
+
+    const submitBtn = document.getElementById('submitReportBtn');
+    submitBtn.disabled = true;
 
     try {
         const response = await fetch(`https://x-marketplace.onrender.com${endpoint}`, {
@@ -650,6 +686,8 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
     } catch (err) {
         console.error('Report submission error:', err);
         showNotification(`❌ Error: ${err.message}`, 'error');
+    } finally {
+        grecaptcha.reset(reportRecaptchaWidgetId);
     }
 });
 
@@ -699,7 +737,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  // UPDATED: Delete Key Hint Logic
   const deleteKeyInput = document.getElementById('deleteKey');
   const deleteKeyHint = document.getElementById('deleteKeyHint');
 
@@ -719,7 +756,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Load initial content and setup listeners
   loadItems();
   setupValidation();
   document.getElementById('searchInput').addEventListener('input', searchItems);

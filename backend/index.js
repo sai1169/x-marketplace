@@ -6,7 +6,8 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
 const path = require("path");
-const fs = require('fs'); // Import the File System module
+const fs = require('fs');
+const axios = require('axios'); // UPDATED: Import axios for making HTTP requests
 
 const app = express();
 const PORT = 3000;
@@ -27,7 +28,6 @@ const MASTER_KEY = "ramatej@1357";
 // --- Middleware ---
 app.use(cors(corsOptions));
 app.use(express.json());
-// Serve static files from the 'frontend' directory
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // --- Database & Cloudinary Connection ---
@@ -62,15 +62,38 @@ const itemSchema = new mongoose.Schema({
 });
 const Item = mongoose.model("Item", itemSchema);
 
-// --- CRITICAL CHANGE 1: Report Schema ---
-// The 'item' field is now a reference to an 'Item' document.
-// This allows us to link reports directly to items in the database.
 const reportSchema = new mongoose.Schema({
     message: { type: String, required: true },
     item: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: false },
     timestamp: { type: Date, default: Date.now }
 });
 const Report = mongoose.model("Report", reportSchema);
+
+// --- reCAPTCHA Verification Middleware ---
+const verifyRecaptcha = async (req, res, next) => {
+    const token = req.body['g-recaptcha-response'];
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY; // <-- IMPORTANT: SET THIS IN YOUR ENVIRONMENT
+
+    if (!token) {
+        return res.status(400).json({ error: "reCAPTCHA token is missing." });
+    }
+
+    try {
+        const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
+        
+        const response = await axios.post(verificationUrl);
+        const { success } = response.data;
+
+        if (success) {
+            next(); // Verification successful, proceed to the next middleware/handler
+        } else {
+            res.status(403).json({ error: "Failed reCAPTCHA verification." });
+        }
+    } catch (error) {
+        console.error("❌ reCAPTCHA verification error:", error.message);
+        res.status(500).json({ error: "Error verifying reCAPTCHA." });
+    }
+};
 
 
 // --- Authentication Middleware ---
@@ -117,7 +140,8 @@ app.get("/items", async (req, res) => {
   }
 });
 
-app.post("/items", upload.array("images", 5), async (req, res) => {
+// UPDATED: Added verifyRecaptcha middleware
+app.post("/items", upload.array("images", 5), verifyRecaptcha, async (req, res) => {
   try {
     const { 
       title, price, contact, category, categoryDescription, 
@@ -211,7 +235,8 @@ app.put("/items/:id", masterKeyAuth, async (req, res) => {
 
 
 // --- Report Routes ---
-app.post("/report-item", async (req, res) => {
+// UPDATED: Added verifyRecaptcha middleware
+app.post("/report-item", verifyRecaptcha, async (req, res) => {
     try {
         const { itemId, message } = req.body;
         if (!itemId || !message) {
@@ -230,7 +255,8 @@ app.post("/report-item", async (req, res) => {
     }
 });
 
-app.post("/report-issue", async (req, res) => {
+// UPDATED: Added verifyRecaptcha middleware
+app.post("/report-issue", verifyRecaptcha, async (req, res) => {
     try {
         const { message } = req.body;
         if (!message) {
@@ -247,9 +273,6 @@ app.post("/report-issue", async (req, res) => {
 
 app.get("/reports", masterKeyAuth, async (req, res) => {
     try {
-        // --- CRITICAL CHANGE 2: Populate Report Data ---
-        // .populate() tells Mongoose to look up the item referenced by its ID
-        // and replace it with the actual item document (or just the fields we need).
         const reports = await Report.find().populate('item', 'title images').sort({ timestamp: -1 });
         res.json(reports);
     } catch (error) {

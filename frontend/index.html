@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <!-- UPDATED: Add reCAPTCHA script -->
+  <script src="https://www.google.com/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit" async defer></script>
 </head>
 <body>
   <header class="header">
@@ -144,16 +146,13 @@
       </div>
     </div>
 
-    <!-- UPDATED: Delete Key Field with new ID for the hint -->
     <div class="form-group">
         <label class="form-label" for="deleteKey">Delete Key</label>
         <input type="password" id="deleteKey" class="form-input" placeholder="Enter a password to delete this item" required />
         <div class="field-hint" id="deleteKeyHint">You will need this key to delete your item later. Remember it!</div>
         <div class="error-message" id="deleteKeyError">Please enter a delete key (at least 6 characters)</div>
     </div>
-    <!-- End Update -->
 
-    <!-- Category Description Field -->
     <div class="form-group">
       <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
       <textarea 
@@ -165,7 +164,6 @@
       <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
     </div>
 
-    <!-- Conditional Apron Fields -->
     <div id="apronFields" class="form-row apron-fields" style="display: none;">
       <div class="form-group">
         <label class="form-label" for="apronSize">Apron Size</label>
@@ -206,7 +204,10 @@
       <div class="error-message" id="imageError">Please select at least one image</div>
     </div>
     
-    <button type="submit" class="submit-btn">
+    <!-- UPDATED: Add reCAPTCHA widget here -->
+    <div id="g-recaptcha-item" class="g-recaptcha"></div>
+
+    <button type="submit" id="submitItemBtn" class="submit-btn" disabled>
       <span class="submit-icon">🚀</span>
       <span class="submit-text">List Item</span>
     </button>
@@ -214,13 +215,10 @@
 </section>
   </main>
 
-  <!-- Floating Add Button (Mobile) -->
-
   <div class="floating-add-btn" id="floatingAddBtn" onclick="scrollToAddItem()">
     <span class="floating-btn-icon">+</span>
   </div>
 
-  <!-- Mobile hint popup -->
   <div id="mobileHint" class="mobile-hint">
     Press image to view full image
   </div>
@@ -234,7 +232,6 @@
   </footer>
 
   <!-- Image Modal -->
-
   <div id="imageModal" class="image-modal">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()" aria-label="Close modal">✕</button>
@@ -287,7 +284,9 @@
                       <label for="reportMessage" class="form-label">Please describe the issue:</label>
                       <textarea id="reportMessage" class="form-textarea" rows="4" required></textarea>
                   </div>
-                  <button type="submit" class="submit-btn">Submit Report</button>
+                  <!-- UPDATED: Add reCAPTCHA widget here -->
+                  <div id="g-recaptcha-report" class="g-recaptcha"></div>
+                  <button type="submit" id="submitReportBtn" class="submit-btn" disabled>Submit Report</button>
               </form>
           </div>
       </div>
