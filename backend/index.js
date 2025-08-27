@@ -5,35 +5,40 @@ const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
-const path = require("path");
-const fs = require('fs');
-const axios = require('axios'); // UPDATED: Import axios for making HTTP requests
+const axios = require("axios");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // ✅ Use Render port
 
 // --- Config ---
-const allowedOrigins = ["https://x-marketplace-one.vercel.app", "http://localhost:3000", "http://127.0.0.1:5501", null];
+const allowedOrigins = [
+  "https://x-marketplace-one.vercel.app", // your frontend on Vercel
+  "http://localhost:3000",
+  "http://127.0.0.1:5501",
+  null,
+];
 const corsOptions = {
   origin: function (origin, callback) {
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
-  }
+  },
 };
-const MASTER_KEY = "ramatej@1357";
+const MASTER_KEY = process.env.ADMIN_PASSWORD; // ✅ safer than hardcoding
 
 // --- Middleware ---
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+// ✅ Removed express.static → backend no longer serves frontend
 
 // --- Database & Cloudinary Connection ---
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB error:", err));
+  .catch((err) => console.error("❌ MongoDB error:", err));
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -58,76 +63,68 @@ const itemSchema = new mongoose.Schema({
   timestamp: Number,
   apronSize: String,
   apronColor: String,
-  deleteKeyHash: String
+  deleteKeyHash: String,
 });
 const Item = mongoose.model("Item", itemSchema);
 
 const reportSchema = new mongoose.Schema({
-    message: { type: String, required: true },
-    item: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: false },
-    timestamp: { type: Date, default: Date.now }
+  message: { type: String, required: true },
+  item: { type: mongoose.Schema.Types.ObjectId, ref: "Item", required: false },
+  timestamp: { type: Date, default: Date.now },
 });
 const Report = mongoose.model("Report", reportSchema);
 
 // --- reCAPTCHA Verification Middleware ---
 const verifyRecaptcha = async (req, res, next) => {
-    const token = req.body['g-recaptcha-response'];
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY; // <-- IMPORTANT: SET THIS IN YOUR ENVIRONMENT
+  const token = req.body["g-recaptcha-response"];
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
-    if (!token) {
-        return res.status(400).json({ error: "reCAPTCHA token is missing." });
+  if (!token) {
+    return res.status(400).json({ error: "reCAPTCHA token is missing." });
+  }
+
+  try {
+    const response = await axios.post(
+      "https://www.google.com/recaptcha/api/siteverify",
+      null,
+      { params: { secret: secretKey, response: token } }
+    );
+
+    if (response.data.success) {
+      next();
+    } else {
+      res.status(403).json({ error: "Failed reCAPTCHA verification." });
     }
-
-    try {
-        const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
-        
-        const response = await axios.post(verificationUrl);
-        const { success } = response.data;
-
-        if (success) {
-            next(); // Verification successful, proceed to the next middleware/handler
-        } else {
-            res.status(403).json({ error: "Failed reCAPTCHA verification." });
-        }
-    } catch (error) {
-        console.error("❌ reCAPTCHA verification error:", error.message);
-        res.status(500).json({ error: "Error verifying reCAPTCHA." });
-    }
+  } catch (error) {
+    console.error("❌ reCAPTCHA verification error:", error.message);
+    res.status(500).json({ error: "Error verifying reCAPTCHA." });
+  }
 };
-
 
 // --- Authentication Middleware ---
 const masterKeyAuth = (req, res, next) => {
-    const providedKey = req.headers['x-master-key'];
-    if (providedKey === MASTER_KEY) {
-        next();
-    } else {
-        res.status(401).json({ error: "Unauthorized: Invalid master key" });
-    }
+  const providedKey = req.headers["x-master-key"];
+  if (providedKey === MASTER_KEY) {
+    next();
+  } else {
+    res.status(401).json({ error: "Unauthorized: Invalid master key" });
+  }
 };
 
+// --- Root Route (API only) ---
+app.get("/", (req, res) => {
+  res.json({ status: "API running", service: "x-marketplace backend" });
+});
 
 // --- Admin Routes ---
 app.post("/admin/login", (req, res) => {
-    const { masterKey } = req.body;
-    if (masterKey === MASTER_KEY) {
-        res.status(200).json({ success: true, message: "Login successful" });
-    } else {
-        res.status(401).json({ success: false, message: "Invalid master key" });
-    }
+  const { masterKey } = req.body;
+  if (masterKey === MASTER_KEY) {
+    res.status(200).json({ success: true, message: "Login successful" });
+  } else {
+    res.status(401).json({ success: false, message: "Invalid master key" });
+  }
 });
-
-app.get('/admin-script', masterKeyAuth, (req, res) => {
-    const scriptPath = path.join(__dirname, '..', 'frontend', 'admin.js');
-    fs.readFile(scriptPath, 'utf8', (err, data) => {
-        if (err) {
-            console.error("Error reading admin.js:", err);
-            return res.status(500).send('Could not load admin script.');
-        }
-        res.type('application/javascript').send(data);
-    });
-});
-
 
 // --- Item Routes ---
 app.get("/items", async (req, res) => {
@@ -140,34 +137,43 @@ app.get("/items", async (req, res) => {
   }
 });
 
-// UPDATED: Added verifyRecaptcha middleware
 app.post("/items", upload.array("images", 5), verifyRecaptcha, async (req, res) => {
   try {
-    const { 
-      title, price, contact, category, categoryDescription, 
-      timestamp, apronSize, apronColor, deleteKey
+    const {
+      title,
+      price,
+      contact,
+      category,
+      categoryDescription,
+      timestamp,
+      apronSize,
+      apronColor,
+      deleteKey,
     } = req.body;
 
-    if (!req.files || req.files.length === 0) return res.status(400).json({ error: "No images uploaded" });
+    if (!req.files || req.files.length === 0)
+      return res.status(400).json({ error: "No images uploaded" });
     if (!deleteKey) return res.status(400).json({ error: "Delete key is required" });
-    
+
     const saltRounds = 10;
     const deleteKeyHash = await bcrypt.hash(deleteKey, saltRounds);
-    const imageUrls = req.files.map(file => file.path);
+    const imageUrls = req.files.map((file) => file.path);
 
     const newItem = new Item({
-      title, price, contact, category, 
+      title,
+      price,
+      contact,
+      category,
       categoryDescription: categoryDescription || undefined,
       images: imageUrls,
       timestamp: timestamp || Date.now(),
       apronSize: category === "Aprons" ? apronSize : undefined,
       apronColor: category === "Aprons" ? apronColor : undefined,
-      deleteKeyHash
+      deleteKeyHash,
     });
 
     await newItem.save();
     res.status(201).json({ message: "Item saved", item: newItem });
-
   } catch (error) {
     console.error("❌ Upload error:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -181,13 +187,13 @@ app.delete("/items/:id", async (req, res) => {
     const item = await Item.findById(id);
 
     if (!item) return res.status(404).json({ error: "Item not found" });
-    
+
     const getPublicIdFromUrl = (url) => {
       const match = url.match(/\/v\d+\/(.+?)\.[a-zA-Z0-9]+$/);
       return match ? match[1] : null;
     };
-    
-    let isMatch = (deleteKey === MASTER_KEY);
+
+    let isMatch = deleteKey === MASTER_KEY;
     if (!isMatch && item.deleteKeyHash) {
       isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
     }
@@ -196,8 +202,14 @@ app.delete("/items/:id", async (req, res) => {
       for (const imageUrl of item.images) {
         const publicId = getPublicIdFromUrl(imageUrl);
         if (publicId) {
-          try { await cloudinary.uploader.destroy(publicId); } 
-          catch (cloudinaryError) { console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError); }
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (cloudinaryError) {
+            console.error(
+              `❌ Cloudinary deletion failed for ${publicId}:`,
+              cloudinaryError
+            );
+          }
         }
       }
       await Item.findByIdAndDelete(id);
@@ -207,81 +219,79 @@ app.delete("/items/:id", async (req, res) => {
     }
   } catch (error) {
     console.error("❌ Delete error:", error);
-    res.status(500).json({ error: "Incorrect delete key" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 app.put("/items/:id", masterKeyAuth, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, price, category } = req.body;
+  try {
+    const { id } = req.params;
+    const { title, price, category } = req.body;
 
-        const updatedItem = await Item.findByIdAndUpdate(id, {
-            title,
-            price,
-            category
-        }, { new: true });
+    const updatedItem = await Item.findByIdAndUpdate(
+      id,
+      { title, price, category },
+      { new: true }
+    );
 
-        if (!updatedItem) {
-            return res.status(404).json({ error: "Item not found" });
-        }
-
-        res.status(200).json({ message: "Item updated successfully", item: updatedItem });
-    } catch (error) {
-        console.error("❌ Update item error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+    if (!updatedItem) {
+      return res.status(404).json({ error: "Item not found" });
     }
-});
 
+    res.status(200).json({ message: "Item updated successfully", item: updatedItem });
+  } catch (error) {
+    console.error("❌ Update item error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 // --- Report Routes ---
-// UPDATED: Added verifyRecaptcha middleware
 app.post("/report-item", verifyRecaptcha, async (req, res) => {
-    try {
-        const { itemId, message } = req.body;
-        if (!itemId || !message) {
-            return res.status(400).json({ error: "Item ID and message are required." });
-        }
-        const itemExists = await Item.findById(itemId);
-        if (!itemExists) {
-            return res.status(404).json({ error: "Item not found" });
-        }
-        const newReport = new Report({ message, item: itemId });
-        await newReport.save();
-        res.status(201).json({ message: "Item reported successfully." });
-    } catch (error) {
-        console.error("❌ Report item error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+  try {
+    const { itemId, message } = req.body;
+    if (!itemId || !message) {
+      return res.status(400).json({ error: "Item ID and message are required." });
     }
+    const itemExists = await Item.findById(itemId);
+    if (!itemExists) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+    const newReport = new Report({ message, item: itemId });
+    await newReport.save();
+    res.status(201).json({ message: "Item reported successfully." });
+  } catch (error) {
+    console.error("❌ Report item error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-// UPDATED: Added verifyRecaptcha middleware
 app.post("/report-issue", verifyRecaptcha, async (req, res) => {
-    try {
-        const { message } = req.body;
-        if (!message) {
-            return res.status(400).json({ error: "Message is required." });
-        }
-        const newReport = new Report({ message });
-        await newReport.save();
-        res.status(201).json({ message: "Issue reported successfully." });
-    } catch (error) {
-        console.error("❌ Report issue error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: "Message is required." });
     }
+    const newReport = new Report({ message });
+    await newReport.save();
+    res.status(201).json({ message: "Issue reported successfully." });
+  } catch (error) {
+    console.error("❌ Report issue error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 app.get("/reports", masterKeyAuth, async (req, res) => {
-    try {
-        const reports = await Report.find().populate('item', 'title images').sort({ timestamp: -1 });
-        res.json(reports);
-    } catch (error) {
-        console.error("❌ Get reports error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
+  try {
+    const reports = await Report.find()
+      .populate("item", "title images")
+      .sort({ timestamp: -1 });
+    res.json(reports);
+  } catch (error) {
+    console.error("❌ Get reports error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
