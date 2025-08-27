@@ -8,7 +8,6 @@ function onloadRecaptchaCallback() {
     const itemRecaptchaContainer = document.getElementById('g-recaptcha-item');
     if (itemRecaptchaContainer) {
         itemRecaptchaWidgetId = grecaptcha.render('g-recaptcha-item', {
-            'sitekey': 'YOUR_RECAPTCHA_SITE_KEY', // <-- IMPORTANT: REPLACE WITH YOUR SITE KEY
             'callback': () => document.getElementById('submitItemBtn').disabled = false,
             'expired-callback': () => document.getElementById('submitItemBtn').disabled = true
         });
@@ -17,7 +16,6 @@ function onloadRecaptchaCallback() {
     const reportRecaptchaContainer = document.getElementById('g-recaptcha-report');
     if (reportRecaptchaContainer) {
         reportRecaptchaWidgetId = grecaptcha.render('g-recaptcha-report', {
-            'sitekey': 'YOUR_RECAPTCHA_SITE_KEY', // <-- IMPORTANT: REPLACE WITH YOUR SITE KEY
             'callback': () => document.getElementById('submitReportBtn').disabled = false,
             'expired-callback': () => document.getElementById('submitReportBtn').disabled = true
         });
@@ -737,6 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
+  // UPDATED: Delete Key Hint Logic
   const deleteKeyInput = document.getElementById('deleteKey');
   const deleteKeyHint = document.getElementById('deleteKeyHint');
 

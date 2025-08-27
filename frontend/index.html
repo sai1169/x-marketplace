@@ -146,13 +146,16 @@
       </div>
     </div>
 
+    <!-- UPDATED: Delete Key Field with new ID for the hint -->
     <div class="form-group">
         <label class="form-label" for="deleteKey">Delete Key</label>
         <input type="password" id="deleteKey" class="form-input" placeholder="Enter a password to delete this item" required />
         <div class="field-hint" id="deleteKeyHint">You will need this key to delete your item later. Remember it!</div>
         <div class="error-message" id="deleteKeyError">Please enter a delete key (at least 6 characters)</div>
     </div>
+    <!-- End Update -->
 
+    <!-- Category Description Field -->
     <div class="form-group">
       <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
       <textarea 
@@ -164,6 +167,7 @@
       <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
     </div>
 
+    <!-- Conditional Apron Fields -->
     <div id="apronFields" class="form-row apron-fields" style="display: none;">
       <div class="form-group">
         <label class="form-label" for="apronSize">Apron Size</label>
@@ -205,7 +209,7 @@
     </div>
     
     <!-- UPDATED: Add reCAPTCHA widget here -->
-    <div id="g-recaptcha-item" class="g-recaptcha"></div>
+    <div id="g-recaptcha-item" class="g-recaptcha" data-sitekey="6LeV7rQrAAAAAG8MlhVS23bGvrG7Qq0W7oJhg9jY"></div>
 
     <button type="submit" id="submitItemBtn" class="submit-btn" disabled>
       <span class="submit-icon">🚀</span>
