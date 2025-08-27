@@ -675,7 +675,6 @@ function showMobileHint() {
 
 // --- Main Initializer ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Bug Fix: Moved theme management inside DOMContentLoaded
   const themeToggle = document.getElementById('themeToggle');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const initialTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
@@ -700,6 +699,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
+  // UPDATED: Delete Key Hint Logic
+  const deleteKeyInput = document.getElementById('deleteKey');
+  const deleteKeyHint = document.getElementById('deleteKeyHint');
+
+  if (deleteKeyInput && deleteKeyHint) {
+      const originalHintText = deleteKeyHint.textContent;
+
+      deleteKeyInput.addEventListener('focus', () => {
+          deleteKeyHint.textContent = 'Make sure to remember this key!';
+          deleteKeyHint.classList.add('focused');
+      });
+
+      deleteKeyInput.addEventListener('blur', () => {
+          if (deleteKeyInput.value.trim() === '') {
+              deleteKeyHint.textContent = originalHintText;
+              deleteKeyHint.classList.remove('focused');
+          }
+      });
+  }
+
   // Load initial content and setup listeners
   loadItems();
   setupValidation();

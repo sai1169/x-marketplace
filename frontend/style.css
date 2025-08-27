@@ -737,9 +737,9 @@ body {
   font-size: var(--font-size-sm);
   color: var(--color-text-tertiary);
   margin-top: var(--spacing-xs);
+  transition: color var(--transition-fast);
 }
 
-/* NEW: Styles for the delete key hint */
 .field-hint.focused {
     color: var(--color-primary);
     font-weight: 500;
