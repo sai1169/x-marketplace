@@ -6,9 +6,7 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
 const axios = require("axios");
-const rateLimit = require('express-rate-limit'); // Import rate-limit
-const fs = require('fs');
-const path = require('path');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,7 +18,6 @@ const allowedOrigins = [
   "http://127.0.0.1:5501",
 ];
 
-// FIXED: Simplified and improved CORS configuration
 const corsOptions = {
   origin: allowedOrigins,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -29,20 +26,20 @@ const corsOptions = {
 };
 
 const MASTER_KEY = process.env.ADMIN_PASSWORD;
-const API_SECRET_KEY = process.env.API_SECRET_KEY; // Load secret key from environment
+const API_SECRET_KEY = process.env.API_SECRET_KEY;
 
 // --- Rate Limiting Middleware ---
 const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: 100, // Limit each IP to 100 requests per windowMs
+	windowMs: 15 * 60 * 1000,
+	max: 100,
 	standardHeaders: true,
 	legacyHeaders: false,
-  message: 'Too many requests from this IP, please try again after 15 minutes.'
+    message: 'Too many requests from this IP, please try again after 15 minutes.'
 });
 
 // --- Middleware ---
-app.use(limiter); // Apply the rate limiting middleware to all requests
-app.use(cors(corsOptions)); // Use the updated CORS options
+app.use(limiter);
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // --- Database & Cloudinary Connection ---
@@ -122,13 +119,11 @@ const masterKeyAuth = (req, res, next) => {
   }
 };
 
-// --- NEW: API Secret Key Verification Middleware ---
 const verifyApiSecret = (req, res, next) => {
     const providedSecret = req.headers['x-api-secret-key'];
     if (providedSecret && providedSecret === API_SECRET_KEY) {
         return next();
     }
-    // Also allow master key for admin actions to bypass this check
     const providedMasterKey = req.headers["x-master-key"];
     if (providedMasterKey && providedMasterKey === MASTER_KEY) {
         return next();
@@ -152,26 +147,9 @@ app.post("/admin/login", (req, res) => {
   }
 });
 
-// FIXED: Made the path to admin.js more robust for deployment environments.
-app.get('/admin-script', masterKeyAuth, (req, res) => {
-    try {
-        // This path resolves from the project root to frontend/admin.js
-        const scriptPath = path.resolve(process.cwd(), 'frontend', 'admin.js');
-        if (fs.existsSync(scriptPath)) {
-            res.sendFile(scriptPath);
-        } else {
-            // Log the path that was checked for easier debugging on the server
-            console.error(`Admin script not found at path: ${scriptPath}`);
-            res.status(404).json({ error: "Admin script not found on the server." });
-        }
-    } catch (error) {
-        console.error("❌ Error serving admin script:", error);
-        res.status(500).json({ error: "Internal Server Error while serving script." });
-    }
-});
+// The /admin-script endpoint has been removed as it is no longer needed.
 
 // --- Item Routes ---
-// SECURED: Added verifyApiSecret middleware
 app.get("/items", verifyApiSecret, async (req, res) => {
   try {
     const items = await Item.find().sort({ timestamp: -1 });
@@ -182,34 +160,22 @@ app.get("/items", verifyApiSecret, async (req, res) => {
   }
 });
 
-// SECURED: Added verifyApiSecret middleware
 app.post("/items", verifyApiSecret, upload.array("images", 5), verifyRecaptcha, async (req, res) => {
   try {
     const {
-      title,
-      price,
-      contact,
-      category,
-      categoryDescription,
-      timestamp,
-      apronSize,
-      apronColor,
-      deleteKey,
+      title, price, contact, category, categoryDescription,
+      timestamp, apronSize, apronColor, deleteKey,
     } = req.body;
 
     if (!req.files || req.files.length === 0)
       return res.status(400).json({ error: "No images uploaded" });
     if (!deleteKey) return res.status(400).json({ error: "Delete key is required" });
 
-    const saltRounds = 10;
-    const deleteKeyHash = await bcrypt.hash(deleteKey, saltRounds);
+    const deleteKeyHash = await bcrypt.hash(deleteKey, 10);
     const imageUrls = req.files.map((file) => file.path);
 
     const newItem = new Item({
-      title,
-      price,
-      contact,
-      category,
+      title, price, contact, category,
       categoryDescription: categoryDescription || undefined,
       images: imageUrls,
       timestamp: timestamp || Date.now(),
@@ -226,7 +192,6 @@ app.post("/items", verifyApiSecret, upload.array("images", 5), verifyRecaptcha, 
   }
 });
 
-// SECURED: Added verifyApiSecret middleware
 app.delete("/items/:id", verifyApiSecret, async (req, res) => {
   try {
     const { id } = req.params;
@@ -252,10 +217,7 @@ app.delete("/items/:id", verifyApiSecret, async (req, res) => {
           try {
             await cloudinary.uploader.destroy(publicId);
           } catch (cloudinaryError) {
-            console.error(
-              `❌ Cloudinary deletion failed for ${publicId}:`,
-              cloudinaryError
-            );
+            console.error(`❌ Cloudinary deletion failed for ${publicId}:`, cloudinaryError);
           }
         }
       }
@@ -276,9 +238,7 @@ app.put("/items/:id", masterKeyAuth, async (req, res) => {
     const { title, price, category } = req.body;
 
     const updatedItem = await Item.findByIdAndUpdate(
-      id,
-      { title, price, category },
-      { new: true }
+      id, { title, price, category }, { new: true }
     );
 
     if (!updatedItem) {
@@ -293,7 +253,6 @@ app.put("/items/:id", masterKeyAuth, async (req, res) => {
 });
 
 // --- Report Routes ---
-// SECURED: Added verifyApiSecret middleware
 app.post("/report-item", verifyApiSecret, verifyRecaptcha, async (req, res) => {
   try {
     const { itemId, message } = req.body;
@@ -313,7 +272,6 @@ app.post("/report-item", verifyApiSecret, verifyRecaptcha, async (req, res) => {
   }
 });
 
-// SECURED: Added verifyApiSecret middleware
 app.post("/report-issue", verifyApiSecret, verifyRecaptcha, async (req, res) => {
   try {
     const { message } = req.body;
