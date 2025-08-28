@@ -11,9 +11,19 @@ const API_SECRET_KEY = "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3";
 
 // --- reCAPTCHA Functions ---
 function onloadRecaptchaCallback() {
+    // Get the current theme from the root element
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    // NOTE: Replace '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI' with your actual Google reCAPTCHA site key.
+    // This is a public test key provided by Google.
+    const siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
+
     const itemRecaptchaContainer = document.getElementById('g-recaptcha-item');
     if (itemRecaptchaContainer) {
+        // Clear container in case of re-render on theme change
+        itemRecaptchaContainer.innerHTML = ''; 
         itemRecaptchaWidgetId = grecaptcha.render('g-recaptcha-item', {
+            'sitekey': siteKey,
+            'theme': currentTheme, // Use the detected theme
             'callback': () => document.getElementById('submitItemBtn').disabled = false,
             'expired-callback': () => document.getElementById('submitItemBtn').disabled = true
         });
@@ -21,12 +31,17 @@ function onloadRecaptchaCallback() {
 
     const reportRecaptchaContainer = document.getElementById('g-recaptcha-report');
     if (reportRecaptchaContainer) {
+        // Clear container in case of re-render on theme change
+        reportRecaptchaContainer.innerHTML = '';
         reportRecaptchaWidgetId = grecaptcha.render('g-recaptcha-report', {
+            'sitekey': siteKey,
+            'theme': currentTheme, // Use the detected theme
             'callback': () => document.getElementById('submitReportBtn').disabled = false,
             'expired-callback': () => document.getElementById('submitReportBtn').disabled = true
         });
     }
 }
+
 
 // --- Notification system ---
 function showNotification(message, type = 'success') {
@@ -750,6 +765,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     themeToggle.classList.toggle('active', newTheme === 'dark');
+
+    // --- NEW: Re-render reCAPTCHA on theme change ---
+    // Check if the reCAPTCHA API is loaded before trying to render
+    if (typeof grecaptcha !== 'undefined' && grecaptcha.render) {
+        onloadRecaptchaCallback(); // This will re-render with the new theme
+    }
   });
 
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
