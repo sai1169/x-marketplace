@@ -156,11 +156,11 @@ app.post("/admin/login", (req, res) => {
   }
 });
 
-// FIXED: Changed pathing logic to be more robust for deployment environments
+// FIXED: Corrected the path to find admin.js inside the frontend folder
 app.get('/admin-script', masterKeyAuth, (req, res) => {
     try {
-        // Use process.cwd() which points to the root of the project on the server
-        const scriptPath = path.join(process.cwd(), 'admin.js');
+        // Go up one directory from backend/ and then into frontend/
+        const scriptPath = path.join(__dirname, '..', 'frontend', 'admin.js');
         if (fs.existsSync(scriptPath)) {
             res.sendFile(scriptPath);
         } else {
