@@ -46,7 +46,6 @@
                 <div class="table-container">
                     <table id="reports-table">
                         <thead>
-                            <!-- UPDATED: Changed table header -->
                             <tr><th>Message</th><th>Reports</th><th>Timestamp</th></tr>
                         </thead>
                         <tbody id="reports-table-body"></tbody>
@@ -74,68 +73,8 @@
         </div>
     </div>
 
-    <script>
-        const loginForm = document.getElementById('login-form');
-        const masterKeyInput = document.getElementById('master-key');
-        const loginError = document.getElementById('login-error');
-        const loginSection = document.getElementById('login-section');
-        const adminDashboard = document.getElementById('admin-dashboard');
-        const API_URL = 'https://x-marketplace.onrender.com';
-
-        async function loadProtectedScript(key) {
-            try {
-                const scriptResponse = await fetch(`${API_URL}/admin-script`, {
-                    headers: { 'x-master-key': key }
-                });
-
-                if (!scriptResponse.ok) {
-                    throw new Error('Could not load admin resources.');
-                }
-
-                const scriptText = await scriptResponse.text();
-                const scriptElement = document.createElement('script');
-                scriptElement.textContent = scriptText;
-                document.body.appendChild(scriptElement);
-
-                loginSection.style.display = 'none';
-                adminDashboard.style.display = 'block';
-            } catch (error) {
-                sessionStorage.removeItem('adminKey');
-                loginError.textContent = error.message;
-                loginError.classList.add('show');
-            }
-        }
-
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const key = masterKeyInput.value.trim();
-            loginError.classList.remove('show');
-
-            try {
-                const response = await fetch(`${API_URL}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ masterKey: key })
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message || 'Login failed');
-
-                sessionStorage.setItem('adminKey', key);
-                await loadProtectedScript(key);
-
-            } catch (error) {
-                loginError.textContent = error.message;
-                loginError.classList.add('show');
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const existingKey = sessionStorage.getItem('adminKey');
-            if (existingKey) {
-                loadProtectedScript(existingKey);
-            }
-        });
-    </script>
+    <!-- The complex script loader has been removed. -->
+    <!-- We now load admin.js directly. -->
+    <script src="admin.js"></script>
 </body>
 </html>
