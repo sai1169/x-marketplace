@@ -13,13 +13,15 @@
     const editCategory = document.getElementById('edit-category');
 
     const API_URL = 'https://x-marketplace.onrender.com';
+    // ADDED: Secret key for API authentication
+    const API_SECRET_KEY = "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3";
 
     // --- Data Loading ---
     async function loadAllItems() {
         try {
-            // FIXED: Added 'x-master-key' header for authentication
+            // FIXED: Changed authentication header to use the API secret key
             const response = await fetch(`${API_URL}/items`, {
-                headers: { 'x-master-key': sessionStorage.getItem('adminKey') }
+                headers: { 'x-api-secret-key': API_SECRET_KEY }
             });
             if (!response.ok) throw new Error('Failed to fetch items');
             const items = await response.json();
@@ -32,6 +34,7 @@
 
     async function loadAllReports() {
         try {
+            // NOTE: This endpoint correctly uses the master key and remains unchanged.
             const response = await fetch(`${API_URL}/reports`, {
                 headers: { 'x-master-key': sessionStorage.getItem('adminKey') }
             });
@@ -72,7 +75,6 @@
         }
         
         reportsTableBody.innerHTML = reports.map(report => {
-            // UPDATED: Logic to differentiate between item and website reports
             const reportContent = report.item
                 ? `
                     <div class="report-item-info">
@@ -97,9 +99,13 @@
         if (!confirm('Are you sure you want to delete this item? This action is permanent.')) return;
 
         try {
+            // FIXED: Added missing authentication header
             const response = await fetch(`${API_URL}/items/${itemId}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-api-secret-key': API_SECRET_KEY 
+                },
                 body: JSON.stringify({ deleteKey: sessionStorage.getItem('adminKey') })
             });
             if (!response.ok) {
@@ -136,6 +142,7 @@
             category: editCategory.value,
         };
         try {
+            // NOTE: This endpoint correctly uses the master key and remains unchanged.
             const response = await fetch(`${API_URL}/items/${itemId}`, {
                 method: 'PUT',
                 headers: {
