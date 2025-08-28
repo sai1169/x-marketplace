@@ -8,7 +8,7 @@ let reportRecaptchaWidgetId;
 // This key must now be set as an environment variable in your frontend hosting platform (e.g., Vercel).
 // Your server is already configured to use this key.
 // For local testing, you might need to re-insert it temporarily, but do not commit it.
-const API_SECRET_KEY = process.env.API_SECRET_KEY || "YOUR_FALLBACK_SECRET_KEY_HERE"; 
+const API_SECRET_KEY = process.env.API_SECRET_KEY || "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3"; 
 
 // --- reCAPTCHA Functions ---
 function onloadRecaptchaCallback() {
