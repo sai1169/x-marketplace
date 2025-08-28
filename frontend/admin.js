@@ -17,7 +17,10 @@
     // --- Data Loading ---
     async function loadAllItems() {
         try {
-            const response = await fetch(`${API_URL}/items`);
+            // FIXED: Added 'x-master-key' header for authentication
+            const response = await fetch(`${API_URL}/items`, {
+                headers: { 'x-master-key': sessionStorage.getItem('adminKey') }
+            });
             if (!response.ok) throw new Error('Failed to fetch items');
             const items = await response.json();
             renderItemsTable(items);
