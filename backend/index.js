@@ -9,7 +9,7 @@ const axios = require("axios");
 const rateLimit = require('express-rate-limit');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.env || 3000;
 
 // --- Config ---
 const allowedOrigins = [
@@ -260,10 +260,14 @@ app.put("/items/:id/edit", verifyApiSecret, async (req, res) => {
 
         if (!item) return res.status(404).json({ error: "Item not found" });
 
-        const isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
+        // Check if the provided key is the master key or the item's delete key
+        let isMatch = deleteKey === MASTER_KEY;
+        if (!isMatch && item.deleteKeyHash) {
+          isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
+        }
 
         if (!isMatch) {
-            return res.status(401).json({ error: "Incorrect delete key" });
+            return res.status(401).json({ error: "Incorrect key" });
         }
         
         // This is a verification step, just return success if key is correct

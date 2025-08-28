@@ -1,5 +1,5 @@
 let allItems = [], currentModalImages = [], currentModalIndex = 0, isLoading = true, searchTimeout;
-let itemIdToDelete = null;
+let itemIdToDelete = null; 
 let itemRecaptchaWidgetId;
 let reportRecaptchaWidgetId;
 
@@ -197,7 +197,7 @@ function renderItems(items) {
     return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
       <div class="card-actions-top">
-        <button class="edit-btn" onclick="openEditModal('${item._id}', '${item.deleteKeyHash}')" aria-label="Edit Item">
+        <button class="edit-btn" onclick="openEditModal('${item._id}')" aria-label="Edit Item">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
         </button>
         <button class="report-btn" onclick="openReportModal('${item._id}')" aria-label="Report Item">
@@ -649,11 +649,9 @@ document.getElementById('deleteModal').addEventListener('click', (e) => { if (e.
 
 // Edit Modal Logic
 let itemIdToEdit = null;
-let itemDeleteKeyHash = null;
 
-function openEditModal(itemId, deleteKeyHash) {
+function openEditModal(itemId) {
     itemIdToEdit = itemId;
-    itemDeleteKeyHash = deleteKeyHash;
     const modal = document.getElementById('editModal');
     const itemToEdit = allItems.find(item => item._id === itemId);
     
@@ -673,7 +671,6 @@ function openEditModal(itemId, deleteKeyHash) {
 
 function closeEditModal() {
     itemIdToEdit = null;
-    itemDeleteKeyHash = null;
     const modal = document.getElementById('editModal');
     modal.classList.remove('show');
     document.body.style.overflow = 'auto';
@@ -693,7 +690,7 @@ document.getElementById('edit-form').addEventListener('submit', async (e) => {
         editSubmitBtn.innerHTML = `<div class="loader"></div> <span>Verifying...</span>`;
 
         try {
-            const response = await fetch(`${API_URL}/items/${itemIdToEdit}`, {
+            const response = await fetch(`${API_URL}/items/${itemIdToEdit}/edit`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -738,7 +735,7 @@ document.getElementById('edit-form').addEventListener('submit', async (e) => {
         editSubmitBtn.innerHTML = `<div class="loader"></div> <span>Saving...</span>`;
         
         try {
-            const response = await fetch(`${API_URL}/items/${itemIdToEdit}`, {
+            const response = await fetch(`${API_URL}/items/${itemIdToEdit}/edit`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
