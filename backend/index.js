@@ -156,18 +156,19 @@ app.post("/admin/login", (req, res) => {
   }
 });
 
-// FIXED: Added endpoint to serve the protected admin script
+// FIXED: Changed pathing logic to be more robust for deployment environments
 app.get('/admin-script', masterKeyAuth, (req, res) => {
     try {
-        const scriptPath = path.join(__dirname, 'admin.js');
+        // Use process.cwd() which points to the root of the project on the server
+        const scriptPath = path.join(process.cwd(), 'admin.js');
         if (fs.existsSync(scriptPath)) {
             res.sendFile(scriptPath);
         } else {
-            res.status(404).json({ error: "Admin script not found." });
+            res.status(404).json({ error: "Admin script not found on the server." });
         }
     } catch (error) {
         console.error("❌ Error serving admin script:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error while serving script." });
     }
 });
 
