@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
-  <!-- reCAPTCHA script with explicit rendering callback -->
+  <!-- UPDATED: Add reCAPTCHA script -->
   <script src="https://www.google.com/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit" async defer></script>
 </head>
 <body>
@@ -43,172 +43,176 @@
       </div>
     </section>
 
-    <!-- Filters & Sort -->
-    <section id="filters" class="filters-section">
-      <div class="filters-header">
-        <h3 class="filters-title">Filter & Sort</h3>
-        <div class="sort-container">
-          <select id="sortSelect" class="sort-select" onchange="sortItems()" aria-label="Sort items">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-          </select>
-        </div>
+<!-- Filters & Sort -->
+<section id="filters" class="filters-section">
+  <div class="filters-header">
+    <h3 class="filters-title">Filter & Sort</h3>
+    <div class="sort-container">
+      <select id="sortSelect" class="sort-select" onchange="sortItems()" aria-label="Sort items">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="filter-controls">
+    <div class="filter-buttons">
+      <button onclick="showAll()" class="filter-btn active">All Items</button>
+      <button onclick="showFree()" class="filter-btn">Free Items</button>
+      <button onclick="showProjectStash()" class="filter-btn" id="projectStashBtn">Project Stash</button>
+      <button onclick="showAprons()" class="filter-btn" id="apronsFilterBtn">Aprons</button>
+    </div>
+    <select id="categoryFilter" class="category-select" onchange="filterByCategory()" aria-label="Filter by category">
+      <option value="">All Categories</option>
+      <option value="Aprons">Aprons</option>
+      <option value="Books">Books</option>
+      <option value="IOT/Project components">IOT/Project components</option>
+      <option value="Lab">Lab Items</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+  <!-- New: Apron Sub-Sort Container -->
+  <div id="apronSubSort" class="apron-subsort" style="display: none;">
+    <select id="apronSizeSort" class="sort-select" onchange="sortItems()" aria-label="Sort by apron size">
+      <option value="">All Sizes</option>
+      <option value="36">Size 36</option>
+      <option value="38">Size 38</option>
+      <option value="40">Size 40</option>
+      <option value="42">Size 42</option>
+      <option value="44">Size 44</option>
+      <option value="46">Size 46</option>
+    </select>
+    <select id="apronColorSort" class="sort-select" onchange="sortItems()" aria-label="Sort by apron color">
+      <option value="">All Colors</option>
+      <option value="White">White</option>
+      <option value="Blue">Blue</option>
+    </select>
+  </div>
+</section>
+
+<!-- Items -->
+<section id="item-list" class="items-section">
+  <div class="section-header">
+    <h2 class="section-title">Available Items</h2>
+    <div class="items-count" id="itemsCount">Loading...</div>
+  </div>
+  <div id="items-container" class="items-grid">
+    <!-- Skeleton loaders will be inserted here -->
+  </div>
+</section>
+
+<!-- Add Item -->
+<section id="add-item" class="add-item-section">
+  <div class="section-header">
+    <h2 class="section-title">📦 List Your Item</h2>
+    <p class="section-subtitle">Share your items with fellow students</p>
+  </div>
+  
+  <form id="item-form" class="item-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="title">Item Name</label>
+        <input type="text" id="title" class="form-input" placeholder="Enter item name" required />
+        <div class="error-message" id="titleError">Please enter a valid item name</div>
       </div>
       
-      <div class="filter-controls">
-        <div class="filter-buttons">
-          <button onclick="showAll()" class="filter-btn active">All Items</button>
-          <button onclick="showFree()" class="filter-btn">Free Items</button>
-          <button onclick="showProjectStash()" class="filter-btn" id="projectStashBtn">Project Stash</button>
-          <button onclick="showAprons()" class="filter-btn" id="apronsFilterBtn">Aprons</button>
-        </div>
-        <select id="categoryFilter" class="category-select" onchange="filterByCategory()" aria-label="Filter by category">
-          <option value="">All Categories</option>
+      <div class="form-group">
+        <label class="form-label" for="price">Price (₹0 for Free)</label>
+        <input type="number" id="price" class="form-input" placeholder="0" required />
+        <div class="error-message" id="priceError">Please enter a valid price</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="contact">Contact (WhatsApp or Email)</label>
+        <input type="text" id="contact" class="form-input" placeholder="9876543210 or email@example.com" required />
+        <div class="error-message" id="contactError">Please enter a valid 10-digit phone number or email</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="category">Category</label>
+        <select id="category" class="form-select" required onchange="handleCategoryChange()">
+          <option value="" disabled selected>Select Category</option>
           <option value="Aprons">Aprons</option>
           <option value="Books">Books</option>
           <option value="IOT/Project components">IOT/Project components</option>
           <option value="Lab">Lab Items</option>
           <option value="Other">Other</option>
         </select>
+        <div class="error-message" id="categoryError">Please select a category</div>
       </div>
-      <div id="apronSubSort" class="apron-subsort" style="display: none;">
-        <select id="apronSizeSort" class="sort-select" onchange="sortItems()" aria-label="Sort by apron size">
-          <option value="">All Sizes</option>
-          <option value="36">Size 36</option>
-          <option value="38">Size 38</option>
-          <option value="40">Size 40</option>
-          <option value="42">Size 42</option>
-          <option value="44">Size 44</option>
-          <option value="46">Size 46</option>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label" for="deleteKey">Delete Key</label>
+        <input type="password" id="deleteKey" class="form-input" placeholder="Enter a password to delete this item" required />
+        <div class="field-hint" id="deleteKeyHint">You will need this key to delete your item later. Remember it!</div>
+        <div class="error-message" id="deleteKeyError">Please enter a delete key (at least 6 characters)</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
+      <textarea 
+        id="categoryDescription" 
+        class="form-textarea" 
+        placeholder="Add additional details about your item..."
+        rows="3"
+      ></textarea>
+      <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
+    </div>
+
+    <div id="apronFields" class="form-row apron-fields" style="display: none;">
+      <div class="form-group">
+        <label class="form-label" for="apronSize">Apron Size</label>
+        <select id="apronSize" class="form-select">
+          <option value="" disabled selected>Select Size</option>
+          <option value="36">36</option>
+          <option value="38">38</option>
+          <option value="40">40</option>
+          <option value="42">42</option>
+          <option value="44">44</option>
+          <option value="46">46</option>
         </select>
-        <select id="apronColorSort" class="sort-select" onchange="sortItems()" aria-label="Sort by apron color">
-          <option value="">All Colors</option>
+        <div class="error-message" id="apronSizeError">Please select an apron size</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="apronColor">Apron Color</label>
+        <select id="apronColor" class="form-select">
+          <option value="" disabled selected>Select Color</option>
           <option value="White">White</option>
           <option value="Blue">Blue</option>
         </select>
+        <div class="error-message" id="apronColorError">Please select an apron color</div>
       </div>
-    </section>
-
-    <!-- Items -->
-    <section id="item-list" class="items-section">
-      <div class="section-header">
-        <h2 class="section-title">Available Items</h2>
-        <div class="items-count" id="itemsCount">Loading...</div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Item Images</label>
+      <div class="file-input-wrapper">
+        <input type="file" id="image" class="file-input" accept="image/*" required onchange="previewImage(event)" multiple />
+        <div class="file-input-display">
+          <div class="file-input-icon">📷</div>
+          <div class="file-input-text">Click to upload images</div>
+          <div class="file-input-subtext">Support multiple images</div>
+        </div>
       </div>
-      <div id="items-container" class="items-grid">
-        <!-- Items will be dynamically inserted here -->
-      </div>
-    </section>
+      <div id="image-preview-container" class="image-preview-container"></div>
+      <div class="error-message" id="imageError">Please select at least one image</div>
+    </div>
+    
+    <!-- FIXED: Added data-sitekey attribute -->
+    <div id="g-recaptcha-item" class="g-recaptcha" data-sitekey="6LeV7rQrAAAAAG8MlhVS23bGvrG7Qq0W7oJhg9jY"></div>
 
-    <!-- Add Item -->
-    <section id="add-item" class="add-item-section">
-      <div class="section-header">
-        <h2 class="section-title">📦 List Your Item</h2>
-        <p class="section-subtitle">Share your items with fellow students</p>
-      </div>
-      
-      <form id="item-form" class="item-form" novalidate>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="title">Item Name</label>
-            <input type="text" id="title" class="form-input" placeholder="Enter item name" required />
-            <div class="error-message" id="titleError"></div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label" for="price">Price (₹0 for Free)</label>
-            <input type="number" id="price" class="form-input" placeholder="0" required />
-            <div class="error-message" id="priceError"></div>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="contact">Contact (WhatsApp or Email)</label>
-            <input type="text" id="contact" class="form-input" placeholder="9876543210 or email@example.com" required />
-            <div class="error-message" id="contactError"></div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label" for="category">Category</label>
-            <select id="category" class="form-select" required onchange="handleCategoryChange()">
-              <option value="" disabled selected>Select Category</option>
-              <option value="Aprons">Aprons</option>
-              <option value="Books">Books</option>
-              <option value="IOT/Project components">IOT/Project components</option>
-              <option value="Lab">Lab Items</option>
-              <option value="Other">Other</option>
-            </select>
-            <div class="error-message" id="categoryError"></div>
-          </div>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="deleteKey">Delete Key</label>
-            <input type="password" id="deleteKey" class="form-input" placeholder="Enter a password to delete this item" required />
-            <div class="field-hint" id="deleteKeyHint">You will need this key to delete your item later. Remember it!</div>
-            <div class="error-message" id="deleteKeyError"></div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="categoryDescription">Description (Optional)</label>
-          <textarea id="categoryDescription" class="form-textarea" placeholder="e.g., Condition, brand, features..." rows="3"></textarea>
-          <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
-        </div>
-
-        <div id="apronFields" class="form-row apron-fields" style="display: none;">
-          <div class="form-group">
-            <label class="form-label" for="apronSize">Apron Size</label>
-            <select id="apronSize" class="form-select">
-              <option value="" disabled selected>Select Size</option>
-              <option value="36">36</option>
-              <option value="38">38</option>
-              <option value="40">40</option>
-              <option value="42">42</option>
-              <option value="44">44</option>
-              <option value="46">46</option>
-            </select>
-            <div class="error-message" id="apronSizeError"></div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label" for="apronColor">Apron Color</label>
-            <select id="apronColor" class="form-select">
-              <option value="" disabled selected>Select Color</option>
-              <option value="White">White</option>
-              <option value="Blue">Blue</option>
-            </select>
-            <div class="error-message" id="apronColorError"></div>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Images</label>
-          <div class="file-input-wrapper">
-            <input type="file" id="image" class="file-input" accept="image/*" required onchange="previewImage(event)" multiple />
-            <div class="file-input-display">
-              <div class="file-input-icon">📷</div>
-              <div class="file-input-text">Click to upload images</div>
-              <div class="file-input-subtext">Support multiple images</div>
-            </div>
-          </div>
-          <div id="image-preview-container" class="image-preview-container"></div>
-          <div class="error-message" id="imageError"></div>
-        </div>
-        
-        <div class="recaptcha-wrapper">
-            <h4 class="recaptcha-title">✅ Please verify you are human</h4>
-            <div id="g-recaptcha-item" class="g-recaptcha"></div>
-        </div>
-
-        <button type="submit" id="submitItemBtn" class="submit-btn" disabled>
-          <span class="submit-icon">🚀</span>
-          <span class="submit-text">List Item</span>
-        </button>
-      </form>
-    </section>
+    <button type="submit" id="submitItemBtn" class="submit-btn" disabled>
+      <span class="submit-icon">🚀</span>
+      <span class="submit-text">List Item</span>
+    </button>
+  </form>
+</section>
   </main>
 
   <div class="floating-add-btn" id="floatingAddBtn" onclick="scrollToAddItem()">
@@ -256,7 +260,7 @@
                 <div class="form-group">
                     <label for="deleteKeyInput" class="form-label">Enter the delete code created for this item.</label>
                     <input type="password" id="deleteKeyInput" class="form-input" placeholder="Enter delete key" required />
-                    <div class="error-message" id="deleteKeyModalError"></div>
+                    <div class="error-message" id="deleteKeyModalError">Incorrect key. Please try again.</div>
                 </div>
                 <button id="confirmDeleteBtn" type="submit" class="submit-btn" style="background: var(--color-danger);">
                     Confirm Delete
@@ -280,9 +284,8 @@
                       <label for="reportMessage" class="form-label">Please describe the issue:</label>
                       <textarea id="reportMessage" class="form-textarea" rows="4" required></textarea>
                   </div>
-                  <div class="recaptcha-wrapper">
-                    <div id="g-recaptcha-report" class="g-recaptcha"></div>
-                  </div>
+                  <!-- UPDATED: Add reCAPTCHA widget here -->
+                  <div id="g-recaptcha-report" class="g-recaptcha" data-sitekey="6LeV7rQrAAAAAG8MlhVS23bGvrG7Qq0W7oJhg9jY"></div>
                   <button type="submit" id="submitReportBtn" class="submit-btn" disabled>Submit Report</button>
               </form>
           </div>
