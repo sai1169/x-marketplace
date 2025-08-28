@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <!-- UPDATED: Add reCAPTCHA script -->
+  <script src="https://www.google.com/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit" async defer></script>
 </head>
 <body>
   <header class="header">
@@ -97,6 +99,7 @@
     <div class="items-count" id="itemsCount">Loading...</div>
   </div>
   <div id="items-container" class="items-grid">
+    <!-- Skeleton loaders will be inserted here -->
   </div>
 </section>
 
@@ -201,8 +204,8 @@
       <div class="error-message" id="imageError">Please select at least one image</div>
     </div>
     
-    <!-- Custom CAPTCHA for Item Form -->
-    <div id="item-captcha-container" class="captcha-container"></div>
+    <!-- UPDATED: Add reCAPTCHA widget here -->
+    <div id="g-recaptcha-item" class="g-recaptcha"></div>
 
     <button type="submit" id="submitItemBtn" class="submit-btn" disabled>
       <span class="submit-icon">🚀</span>
@@ -281,8 +284,8 @@
                       <label for="reportMessage" class="form-label">Please describe the issue:</label>
                       <textarea id="reportMessage" class="form-textarea" rows="4" required></textarea>
                   </div>
-                  <!-- Custom CAPTCHA for Report Form -->
-                  <div id="report-captcha-container" class="captcha-container"></div>
+                  <!-- UPDATED: Add reCAPTCHA widget here -->
+                  <div id="g-recaptcha-report" class="g-recaptcha" data-sitekey="6LeV7rQrAAAAAG8MlhVS23bGvrG7Qq0W7oJhg9jY"></div>
                   <button type="submit" id="submitReportBtn" class="submit-btn" disabled>Submit Report</button>
               </form>
           </div>
