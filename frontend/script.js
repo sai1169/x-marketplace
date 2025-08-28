@@ -1,32 +1,81 @@
 let allItems = [], currentModalImages = [], currentModalIndex = 0, isLoading = true, searchTimeout;
 let itemIdToDelete = null; 
-let itemRecaptchaWidgetId;
-let reportRecaptchaWidgetId;
 
-// --- NEW: API Secret Key ---
-// IMPORTANT: In a real-world production app, this key should be managed by a build process
-// or fetched from a secure endpoint, not hardcoded directly. For this project's scope,
-// hardcoding is acceptable, but be aware of the security implications.
-const API_SECRET_KEY = "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3"; 
+// --- Custom CAPTCHA Logic ---
+const captchaInstances = {};
 
-// --- reCAPTCHA Functions ---
-function onloadRecaptchaCallback() {
-    const itemRecaptchaContainer = document.getElementById('g-recaptcha-item');
-    if (itemRecaptchaContainer) {
-        itemRecaptchaWidgetId = grecaptcha.render('g-recaptcha-item', {
-            'callback': () => document.getElementById('submitItemBtn').disabled = false,
-            'expired-callback': () => document.getElementById('submitItemBtn').disabled = true
-        });
-    }
+function createCaptcha(containerId, submitButtonId) {
+    const container = document.getElementById(containerId);
+    const submitButton = document.getElementById(submitButtonId);
+    
+    let num1 = Math.ceil(Math.random() * 10);
+    let num2 = Math.ceil(Math.random() * 10);
+    let answer = num1 + num2;
 
-    const reportRecaptchaContainer = document.getElementById('g-recaptcha-report');
-    if (reportRecaptchaContainer) {
-        reportRecaptchaWidgetId = grecaptcha.render('g-recaptcha-report', {
-            'callback': () => document.getElementById('submitReportBtn').disabled = false,
-            'expired-callback': () => document.getElementById('submitReportBtn').disabled = true
-        });
-    }
+    const instance = {
+        verified: false,
+        answer: answer
+    };
+    captchaInstances[containerId] = instance;
+
+    container.innerHTML = `
+        <div class="captcha-prompt">
+            <div class="captcha-checkbox" id="${containerId}-checkbox">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="captcha-label">I'm not a robot</span>
+        </div>
+        <div class="captcha-challenge" id="${containerId}-challenge">
+            <div class="form-group">
+                <label class="form-label captcha-question">What is ${num1} + ${num2}?</label>
+                <input type="number" id="${containerId}-input" class="form-input captcha-input" placeholder="Your answer" />
+                <div class="error-message" id="${containerId}-error"></div>
+            </div>
+        </div>
+    `;
+
+    const checkbox = document.getElementById(`${containerId}-checkbox`);
+    const challenge = document.getElementById(`${containerId}-challenge`);
+    const input = document.getElementById(`${containerId}-input`);
+    const error = document.getElementById(`${containerId}-error`);
+
+    checkbox.addEventListener('click', () => {
+        if (!checkbox.classList.contains('checked')) {
+            challenge.style.display = 'block';
+        }
+    });
+
+    input.addEventListener('input', () => {
+        const userAnswer = parseInt(input.value, 10);
+        if (userAnswer === instance.answer) {
+            instance.verified = true;
+            checkbox.classList.add('checked');
+            challenge.style.display = 'none';
+            error.classList.remove('show');
+            submitButton.disabled = false;
+        } else {
+            instance.verified = false;
+            checkbox.classList.remove('checked');
+            submitButton.disabled = true;
+        }
+    });
 }
+
+function isCaptchaVerified(containerId) {
+    const instance = captchaInstances[containerId];
+    if (!instance || !instance.verified) {
+        const error = document.getElementById(`${containerId}-error`);
+        if(error) {
+            error.textContent = 'Please complete the verification.';
+            error.classList.add('show');
+            document.getElementById(`${containerId}-challenge`).style.display = 'block';
+        }
+        showNotification('Please complete the human verification.', 'error');
+        return false;
+    }
+    return true;
+}
+
 
 // --- Notification system ---
 function showNotification(message, type = 'success') {
@@ -134,12 +183,7 @@ function loadItems() {
   showSkeletonLoaders();
   updateItemsCount('Loading...');
   
-  // UPDATED: Added x-api-secret-key header
-  fetch("https://x-marketplace.onrender.com/items", {
-    headers: {
-      'x-api-secret-key': API_SECRET_KEY
-    }
-  })
+  fetch("https://x-marketplace.onrender.com/items")
     .then(res => {
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       return res.json();
@@ -447,8 +491,8 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     );
   }
 
-  if (!validations.every(Boolean)) {
-    showNotification("Please fix the form errors", "error");
+  if (!validations.every(Boolean) || !isCaptchaVerified('item-captcha-container')) {
+    showNotification("Please fix the form errors and complete verification.", "error");
     return;
   }
 
@@ -469,8 +513,6 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   formData.append("category", elements.category.value);
   formData.append("timestamp", Date.now());
   formData.append("deleteKey", elements.deleteKey.value.trim());
-  
-  formData.append('g-recaptcha-response', grecaptcha.getResponse(itemRecaptchaWidgetId));
 
   if (elements.categoryDescription.value.trim()) formData.append("categoryDescription", elements.categoryDescription.value.trim());
   if (elements.category.value === 'Aprons') {
@@ -480,14 +522,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   for (let i = 0; i < elements.image.files.length; i++) formData.append("images", elements.image.files[i]);
 
   try {
-    // UPDATED: Added x-api-secret-key header
-    const response = await fetch("https://x-marketplace.onrender.com/items", { 
-        method: "POST", 
-        headers: {
-            'x-api-secret-key': API_SECRET_KEY
-        },
-        body: formData 
-    });
+    const response = await fetch("https://x-marketplace.onrender.com/items", { method: "POST", body: formData });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `HTTP error ${response.status}`);
@@ -497,6 +532,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
     document.getElementById("image-preview-container").innerHTML = "";
     document.getElementById("apronFields").style.display = "none";
     document.querySelector(".file-input-display").innerHTML = `<div class="file-input-icon">📷</div><div class="file-input-text">Click to upload images</div><div class="file-input-subtext">Support multiple images</div>`;
+    createCaptcha('item-captcha-container', 'submitItemBtn'); // Reset captcha
     setTimeout(() => { loadItems(); document.getElementById('item-list').scrollIntoView({ behavior: 'smooth' }); }, 1500);
   } catch (err) {
     console.error("Upload error:", err);
@@ -504,7 +540,6 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   } finally {
     submitBtn.disabled = true;
     submitBtn.innerHTML = originalContent;
-    grecaptcha.reset(itemRecaptchaWidgetId);
   }
 });
 
@@ -612,13 +647,9 @@ document.getElementById('delete-form').addEventListener('submit', async (e) => {
     confirmBtn.innerHTML = `<div class="loader"></div> <span>Deleting...</span>`;
 
     try {
-        // UPDATED: Added x-api-secret-key header
         const response = await fetch(`https://x-marketplace.onrender.com/items/${itemIdToDelete}`, {
             method: 'DELETE',
-            headers: { 
-                'Content-Type': 'application/json',
-                'x-api-secret-key': API_SECRET_KEY
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ deleteKey })
         });
         
@@ -656,6 +687,7 @@ function openReportModal(itemId) {
     }
     
     document.getElementById('reportMessage').value = '';
+    createCaptcha('report-captcha-container', 'submitReportBtn'); // Create new captcha for the modal
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
 }
@@ -676,11 +708,12 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
         return;
     }
 
+    if (!isCaptchaVerified('report-captcha-container')) {
+        return;
+    }
+
     const endpoint = itemId ? '/report-item' : '/report-issue';
-    const body = { 
-        message,
-        'g-recaptcha-response': grecaptcha.getResponse(reportRecaptchaWidgetId)
-    };
+    const body = { message };
     if (itemId) {
         body.itemId = itemId;
     }
@@ -689,13 +722,9 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
     submitBtn.disabled = true;
 
     try {
-        // UPDATED: Added x-api-secret-key header
         const response = await fetch(`https://x-marketplace.onrender.com${endpoint}`, {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'x-api-secret-key': API_SECRET_KEY
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
 
@@ -710,7 +739,7 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
         console.error('Report submission error:', err);
         showNotification(`❌ Error: ${err.message}`, 'error');
     } finally {
-        grecaptcha.reset(reportRecaptchaWidgetId);
+        submitBtn.disabled = true; // Keep disabled after submission
     }
 });
 
@@ -781,6 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadItems();
   setupValidation();
+  createCaptcha('item-captcha-container', 'submitItemBtn');
   document.getElementById('searchInput').addEventListener('input', searchItems);
   document.getElementById('sortSelect').value = 'newest';
   handleFloatingButton();
