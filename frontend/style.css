@@ -546,7 +546,7 @@ body {
   display: flex;
   gap: var(--spacing-sm);
 }
-.delete-btn, .report-btn {
+.edit-btn, .delete-btn, .report-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -562,8 +562,14 @@ body {
   transform: scale(1);
   transition: all var(--transition-fast);
 }
-.item-card:hover .delete-btn, .item-card:hover .report-btn {
+.item-card:hover .edit-btn, .item-card:hover .delete-btn, .item-card:hover .report-btn {
   opacity: 1;
+}
+.edit-btn:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  transform: scale(1.1);
 }
 .delete-btn:hover {
   background: var(--color-danger);
@@ -1110,7 +1116,7 @@ body {
   color: var(--color-text-primary);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
-.modal-body.report-body {
+.modal-body.report-body, .modal-body.edit-body {
     background: var(--color-bg-primary);
     padding: var(--spacing-xl);
     height: auto;

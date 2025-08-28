@@ -252,6 +252,41 @@ app.put("/items/:id", masterKeyAuth, async (req, res) => {
   }
 });
 
+app.put("/items/:id/edit", verifyApiSecret, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { deleteKey, title, price, category, mode } = req.body;
+        const item = await Item.findById(id);
+
+        if (!item) return res.status(404).json({ error: "Item not found" });
+
+        const isMatch = await bcrypt.compare(deleteKey, item.deleteKeyHash);
+
+        if (!isMatch) {
+            return res.status(401).json({ error: "Incorrect delete key" });
+        }
+        
+        // This is a verification step, just return success if key is correct
+        if (mode === 'verify') {
+            return res.status(200).json({ message: "Key verified successfully" });
+        }
+
+        // Proceed with update
+        const updatedItem = await Item.findByIdAndUpdate(
+            id, { title, price, category }, { new: true }
+        );
+
+        if (!updatedItem) {
+            return res.status(404).json({ error: "Item not found" });
+        }
+
+        res.status(200).json({ message: "Item updated successfully", item: updatedItem });
+    } catch (error) {
+        console.error("❌ Update item error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 // --- Report Routes ---
 app.post("/report-item", verifyApiSecret, verifyRecaptcha, async (req, res) => {
   try {

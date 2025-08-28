@@ -154,14 +154,14 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
-      <textarea 
-        id="categoryDescription" 
-        class="form-textarea" 
-        placeholder="Add additional details about your item..."
-        rows="3"
-      ></textarea>
-      <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
+        <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
+        <textarea 
+          id="categoryDescription" 
+          class="form-textarea" 
+          placeholder="Add additional details about your item..."
+          rows="3"
+        ></textarea>
+        <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
     </div>
 
     <div id="apronFields" class="form-row apron-fields" style="display: none;">
@@ -264,6 +264,49 @@
                 </div>
                 <button id="confirmDeleteBtn" type="submit" class="submit-btn" style="background: var(--color-danger);">
                     Confirm Delete
+                </button>
+            </form>
+        </div>
+    </div>
+  </div>
+
+  <!-- New Edit Modal -->
+  <div id="editModal" class="image-modal">
+    <div class="modal-content edit-modal">
+        <button class="modal-close" onclick="closeEditModal()">✕</button>
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Item</h3>
+        </div>
+        <div class="modal-body edit-body">
+            <form id="edit-form">
+                <input type="hidden" id="editItemId">
+                <div class="form-group">
+                    <label for="editDeleteKey" class="form-label">Enter the delete key for this item to edit it.</label>
+                    <input type="password" id="editDeleteKey" class="form-input" placeholder="Enter delete key" required />
+                    <div class="error-message" id="editDeleteKeyError">Incorrect key. Please try again.</div>
+                </div>
+                <div id="edit-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="editTitle" class="form-label">Item Title</label>
+                        <input type="text" id="editTitle" class="form-input" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="editPrice" class="form-label">Price (₹0 for Free)</label>
+                        <input type="number" id="editPrice" class="form-input" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="editCategory" class="form-label">Category</label>
+                        <select id="editCategory" class="form-select" required>
+                            <option value="Aprons">Aprons</option>
+                            <option value="Books">Books</option>
+                            <option value="IOT/Project components">IOT/Project components</option>
+                            <option value="Lab">Lab Items</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="editSubmitBtn" type="submit" class="submit-btn">
+                    <span class="submit-text">Continue</span>
                 </button>
             </form>
         </div>
