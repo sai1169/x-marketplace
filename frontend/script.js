@@ -3,12 +3,11 @@ let itemIdToDelete = null;
 let itemRecaptchaWidgetId;
 let reportRecaptchaWidgetId;
 
-// --- API Secret Key ---
-// IMPORTANT: The hardcoded API key has been removed to prevent security vulnerabilities.
-// This key must now be set as an environment variable in your frontend hosting platform (e.g., Vercel).
-// Your server is already configured to use this key.
-// For local testing, you might need to re-insert it temporarily, but do not commit it.
-const API_SECRET_KEY = process.env.API_SECRET_KEY || "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3"; 
+// --- NEW: API Secret Key ---
+// IMPORTANT: In a real-world production app, this key should be managed by a build process
+// or fetched from a secure endpoint, not hardcoded directly. For this project's scope,
+// hardcoding is acceptable, but be aware of the security implications.
+const API_SECRET_KEY = "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3"; 
 
 // --- reCAPTCHA Functions ---
 function onloadRecaptchaCallback() {
@@ -135,6 +134,7 @@ function loadItems() {
   showSkeletonLoaders();
   updateItemsCount('Loading...');
   
+  // UPDATED: Added x-api-secret-key header
   fetch("https://x-marketplace.onrender.com/items", {
     headers: {
       'x-api-secret-key': API_SECRET_KEY
@@ -480,6 +480,7 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   for (let i = 0; i < elements.image.files.length; i++) formData.append("images", elements.image.files[i]);
 
   try {
+    // UPDATED: Added x-api-secret-key header
     const response = await fetch("https://x-marketplace.onrender.com/items", { 
         method: "POST", 
         headers: {
@@ -611,6 +612,7 @@ document.getElementById('delete-form').addEventListener('submit', async (e) => {
     confirmBtn.innerHTML = `<div class="loader"></div> <span>Deleting...</span>`;
 
     try {
+        // UPDATED: Added x-api-secret-key header
         const response = await fetch(`https://x-marketplace.onrender.com/items/${itemIdToDelete}`, {
             method: 'DELETE',
             headers: { 
@@ -687,6 +689,7 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
     submitBtn.disabled = true;
 
     try {
+        // UPDATED: Added x-api-secret-key header
         const response = await fetch(`https://x-marketplace.onrender.com${endpoint}`, {
             method: 'POST',
             headers: { 
