@@ -19,19 +19,15 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:5501",
 ];
+
+// FIXED: Simplified and improved CORS configuration
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Disallow requests with no origin (like from Postman, curl, etc.) in production
-    if (process.env.NODE_ENV === 'production' && !origin) {
-        return callback(new Error("Not allowed by CORS"));
-    }
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: allowedOrigins,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+  optionsSuccessStatus: 204
 };
+
 const MASTER_KEY = process.env.ADMIN_PASSWORD;
 const API_SECRET_KEY = process.env.API_SECRET_KEY; // Load secret key from environment
 
@@ -46,7 +42,7 @@ const limiter = rateLimit({
 
 // --- Middleware ---
 app.use(limiter); // Apply the rate limiting middleware to all requests
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); // Use the updated CORS options
 app.use(express.json());
 
 // --- Database & Cloudinary Connection ---
@@ -156,7 +152,7 @@ app.post("/admin/login", (req, res) => {
   }
 });
 
-// FIXED: Corrected the path to find admin.js inside the frontend folder
+// Corrected the path to find admin.js inside the frontend folder
 app.get('/admin-script', masterKeyAuth, (req, res) => {
     try {
         // Go up one directory from backend/ and then into frontend/
