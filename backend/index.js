@@ -7,6 +7,8 @@ const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
 const axios = require("axios");
 const rateLimit = require('express-rate-limit'); // Import rate-limit
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -152,6 +154,21 @@ app.post("/admin/login", (req, res) => {
   } else {
     res.status(401).json({ success: false, message: "Invalid master key" });
   }
+});
+
+// FIXED: Added endpoint to serve the protected admin script
+app.get('/admin-script', masterKeyAuth, (req, res) => {
+    try {
+        const scriptPath = path.join(__dirname, 'admin.js');
+        if (fs.existsSync(scriptPath)) {
+            res.sendFile(scriptPath);
+        } else {
+            res.status(404).json({ error: "Admin script not found." });
+        }
+    } catch (error) {
+        console.error("❌ Error serving admin script:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
 });
 
 // --- Item Routes ---
