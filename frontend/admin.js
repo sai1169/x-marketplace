@@ -13,35 +13,40 @@
     const editCategory = document.getElementById('edit-category');
 
     const API_URL = 'https://x-marketplace.onrender.com';
-    // ADDED: Secret key for API authentication
+    // ADDED: Secret key for API authentication, matching the main script
     const API_SECRET_KEY = "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3";
 
     // --- Data Loading ---
     async function loadAllItems() {
         try {
-            // FIXED: Changed authentication header to use the API secret key
+            // FIXED: This fetch call now uses the 'x-api-secret-key' header for authentication,
+            // which is required by the /items endpoint on your server.
             const response = await fetch(`${API_URL}/items`, {
                 headers: { 'x-api-secret-key': API_SECRET_KEY }
             });
-            if (!response.ok) throw new Error('Failed to fetch items');
+            if (!response.ok) {
+                // This error will be thrown if the server returns a 403 or other non-2xx status
+                throw new Error('Failed to fetch items');
+            }
             const items = await response.json();
             renderItemsTable(items);
         } catch (error) {
             console.error('Error loading items:', error);
-            itemsTableBody.innerHTML = `<tr><td colspan="6">Error loading items.</td></tr>`;
+            itemsTableBody.innerHTML = `<tr><td colspan="6">Error loading items. Please check the console.</td></tr>`;
         }
     }
 
     async function loadAllReports() {
         try {
-            // NOTE: This endpoint correctly uses the master key and remains unchanged.
+            // This endpoint correctly uses the master key and remains unchanged.
             const response = await fetch(`${API_URL}/reports`, {
                 headers: { 'x-master-key': sessionStorage.getItem('adminKey') }
             });
             if (!response.ok) throw new Error('Failed to fetch reports');
             const reports = await response.json();
             renderReportsTable(reports);
-        } catch (error) {
+        } catch (error)
+        {
             console.error('Error loading reports:', error);
             reportsTableBody.innerHTML = `<tr><td colspan="3">Error loading reports.</td></tr>`;
         }
@@ -76,12 +81,7 @@
         
         reportsTableBody.innerHTML = reports.map(report => {
             const reportContent = report.item
-                ? `
-                    <div class="report-item-info">
-                        <img src="${report.item.images[0]}" alt="${report.item.title}" class="table-item-img">
-                        <span>${report.item.title}</span>
-                    </div>
-                  `
+                ? `<div class="report-item-info"><img src="${report.item.images[0]}" alt="${report.item.title}" class="table-item-img"><span>${report.item.title}</span></div>`
                 : '<span class="website-report">Website Issue Report</span>';
 
             return `
@@ -99,7 +99,7 @@
         if (!confirm('Are you sure you want to delete this item? This action is permanent.')) return;
 
         try {
-            // FIXED: Added missing authentication header
+            // FIXED: The delete endpoint also requires authentication. Added the secret key header.
             const response = await fetch(`${API_URL}/items/${itemId}`, {
                 method: 'DELETE',
                 headers: { 
@@ -142,7 +142,7 @@
             category: editCategory.value,
         };
         try {
-            // NOTE: This endpoint correctly uses the master key and remains unchanged.
+            // This endpoint correctly uses the master key and remains unchanged.
             const response = await fetch(`${API_URL}/items/${itemId}`, {
                 method: 'PUT',
                 headers: {
