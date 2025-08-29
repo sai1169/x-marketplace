@@ -6,6 +6,7 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
 const axios = require("axios");
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,10 +25,20 @@ const corsOptions = {
   optionsSuccessStatus: 204
 };
 
-const MASTER_KEY = process.env.ADMIN_PASSWORD;
+const MASTER_KEY = "ramatej@1357";
 const API_SECRET_KEY = process.env.API_SECRET_KEY;
 
+// --- Rate Limiting Middleware ---
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	max: 100,
+	standardHeaders: true,
+	legacyHeaders: false,
+    message: 'Too many requests from this IP, please try again after 15 minutes.'
+});
+
 // --- Middleware ---
+app.use(limiter);
 app.use(cors(corsOptions));
 app.use(express.json());
 

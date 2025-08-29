@@ -16,6 +16,8 @@
     const editTitle = document.getElementById('edit-title');
     const editPrice = document.getElementById('edit-price');
     const editCategory = document.getElementById('edit-category');
+    const editCategoryDescription = document.getElementById('edit-category-description');
+
 
     const API_URL = 'https://x-marketplace.onrender.com';
     const API_SECRET_KEY = "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3";
@@ -103,7 +105,7 @@
                 <td>${item.category}</td>
                 <td>${item.contact}</td>
                 <td class="action-buttons">
-                    <button class="edit-btn" onclick="openEditModal('${item._id}', '${item.title}', '${item.price}', '${item.category}')">Edit</button>
+                    <button class="edit-btn" onclick="openEditModal('${item._id}', '${item.title}', '${item.price}', '${item.category}', '${item.categoryDescription || ''}')">Edit</button>
                     <button class="delete-btn-admin" onclick="deleteItem('${item._id}')">Delete</button>
                 </td>
             </tr>
@@ -145,11 +147,12 @@
     }
 
     // --- Edit Modal Logic ---
-    window.openEditModal = function(id, title, price, category) {
+    window.openEditModal = function(id, title, price, category, categoryDescription) {
         editItemId.value = id;
         editTitle.value = title;
         editPrice.value = price;
         editCategory.value = category;
+        editCategoryDescription.value = categoryDescription;
         editItemModal.classList.add('show');
     }
 
@@ -160,7 +163,12 @@
     editItemForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const itemId = editItemId.value;
-        const updatedData = { title: editTitle.value, price: editPrice.value, category: editCategory.value };
+        const updatedData = { 
+            title: editTitle.value, 
+            price: editPrice.value, 
+            category: editCategory.value,
+            categoryDescription: editCategoryDescription.value 
+        };
         try {
             const response = await fetch(`${API_URL}/items/${itemId}`, {
                 method: 'PUT',

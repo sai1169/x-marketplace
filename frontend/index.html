@@ -154,14 +154,14 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
-        <textarea 
-          id="categoryDescription" 
-          class="form-textarea" 
-          placeholder="Add additional details about your item..."
-          rows="3"
-        ></textarea>
-        <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
+      <label class="form-label" for="categoryDescription">Category Description (Optional)</label>
+      <textarea 
+        id="categoryDescription" 
+        class="form-textarea" 
+        placeholder="Add additional details about your item..."
+        rows="3"
+      ></textarea>
+      <div class="field-hint">Provide extra details like condition, brand, specifications, etc.</div>
     </div>
 
     <div id="apronFields" class="form-row apron-fields" style="display: none;">
@@ -270,49 +270,6 @@
     </div>
   </div>
 
-  <!-- New Edit Modal -->
-  <div id="editModal" class="image-modal">
-    <div class="modal-content edit-modal">
-        <button class="modal-close" onclick="closeEditModal()">✕</button>
-        <div class="modal-header">
-            <h3 class="modal-title">Edit Item</h3>
-        </div>
-        <div class="modal-body edit-body">
-            <form id="edit-form">
-                <input type="hidden" id="editItemId">
-                <div class="form-group">
-                    <label for="editDeleteKey" class="form-label">Enter the delete key for this item to edit it.</label>
-                    <input type="password" id="editDeleteKey" class="form-input" placeholder="Enter delete key" required />
-                    <div class="error-message" id="editDeleteKeyError">Incorrect key. Please try again.</div>
-                </div>
-                <div id="edit-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="editTitle" class="form-label">Item Title</label>
-                        <input type="text" id="editTitle" class="form-input" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="editPrice" class="form-label">Price (₹0 for Free)</label>
-                        <input type="number" id="editPrice" class="form-input" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="editCategory" class="form-label">Category</label>
-                        <select id="editCategory" class="form-select" required>
-                            <option value="Aprons">Aprons</option>
-                            <option value="Books">Books</option>
-                            <option value="IOT/Project components">IOT/Project components</option>
-                            <option value="Lab">Lab Items</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                </div>
-                <button id="editSubmitBtn" type="submit" class="submit-btn">
-                    <span class="submit-text">Continue</span>
-                </button>
-            </form>
-        </div>
-    </div>
-  </div>
-
   <!-- Report Modal -->
   <div id="reportModal" class="image-modal">
       <div class="modal-content delete-modal">
@@ -334,6 +291,54 @@
           </div>
       </div>
   </div>
+  
+  <!-- Edit Modal -->
+  <div id="editItemModal" class="image-modal">
+    <div class="modal-content delete-modal">
+        <button class="modal-close" onclick="closeEditModal()">✕</button>
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Item</h3>
+        </div>
+        <div class="modal-body report-body">
+            <form id="edit-item-form">
+                <input type="hidden" id="edit-item-id">
+                <div class="form-group">
+                    <label for="edit-delete-key" class="form-label">Delete Key</label>
+                    <input type="password" id="edit-delete-key" class="form-input" required placeholder="Enter key to unlock">
+                    <div class="error-message" id="editKeyModalError"></div>
+                </div>
+                
+                <div id="edit-form-content" style="display: none;">
+                    <div class="form-group">
+                        <label for="edit-title" class="form-label">Item Name</label>
+                        <input type="text" id="edit-title" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-price" class="form-label">Price (₹0 for Free)</label>
+                        <input type="number" id="edit-price" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-category" class="form-label">Category</label>
+                        <select id="edit-category" class="form-select" required>
+                            <option value="Aprons">Aprons</option>
+                            <option value="Books">Books</option>
+                            <option value="IOT/Project components">IOT/Project components</option>
+                            <option value="Lab">Lab Items</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <!-- Added description field -->
+                    <div class="form-group">
+                        <label for="edit-category-description" class="form-label">Category Description</label>
+                        <textarea id="edit-category-description" class="form-textarea" rows="3"></textarea>
+                    </div>
+                    <button type="submit" id="confirmEditBtn" class="submit-btn">Save Changes</button>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+</div>
 
   <script src="script.js"></script>
 

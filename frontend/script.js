@@ -8,7 +8,6 @@ let reportRecaptchaWidgetId;
 // or fetched from a secure endpoint, not hardcoded directly. For this project's scope,
 // hardcoding is acceptable, but be aware of the security implications.
 const API_SECRET_KEY = "S3cr3t_Ap1_K3y_F0r_X_M4rk3tpl4c3"; 
-const API_URL = 'https://x-marketplace.onrender.com';
 
 // --- reCAPTCHA Functions ---
 function onloadRecaptchaCallback() {
@@ -176,7 +175,7 @@ function renderItems(items) {
   const container = document.getElementById("items-container");
   
   if (!items.length) {
-    container.innerHTML = `<div class="empty-state"><h3>🔍 No items found</h3><p>Try adjusting your search terms or filters to find what you're looking afor.</p></div>`;
+    container.innerHTML = `<div class="empty-state"><h3>🔍 No items found</h3><p>Try adjusting your search terms or filters to find what you're looking for.</p></div>`;
     return;
   }
 
@@ -197,8 +196,8 @@ function renderItems(items) {
     return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
       <div class="card-actions-top">
-        <button class="edit-btn" onclick="openEditModal('${item._id}')" aria-label="Edit Item">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+        <button class="edit-btn" onclick="openEditModal('${item._id}', '${item.title}', '${item.price}', '${item.category}', '${item.categoryDescription || ''}')" aria-label="Edit Item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-line"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </button>
         <button class="report-btn" onclick="openReportModal('${item._id}')" aria-label="Report Item">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -278,6 +277,7 @@ function sortItems() {
   renderItems(filteredItems);
 }
 
+// Sorting
 function sortItemsByDate(direction) {
   return allItems.sort((a, b) => {
     const timeA = a.timestamp || 0;
@@ -559,7 +559,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (document.getElementById('imageModal').classList.contains('show')) closeModal();
     else if (document.getElementById('deleteModal').classList.contains('show')) closeDeleteModal();
-    else if (document.getElementById('editModal').classList.contains('show')) closeEditModal();
     else if (document.getElementById('reportModal').classList.contains('show')) closeReportModal();
     else if (document.getElementById('searchInput').value) clearSearch();
   }
@@ -618,7 +617,7 @@ document.getElementById('delete-form').addEventListener('submit', async (e) => {
 
     try {
         // UPDATED: Added x-api-secret-key header
-        const response = await fetch(`${API_URL}/items/${itemIdToDelete}`, {
+        const response = await fetch(`https://x-marketplace.onrender.com/items/${itemIdToDelete}`, {
             method: 'DELETE',
             headers: { 
                 'Content-Type': 'application/json',
@@ -645,127 +644,6 @@ document.getElementById('delete-form').addEventListener('submit', async (e) => {
 });
 
 document.getElementById('deleteModal').addEventListener('click', (e) => { if (e.target.id === 'deleteModal') closeDeleteModal(); });
-
-
-// Edit Modal Logic
-let itemIdToEdit = null;
-
-function openEditModal(itemId) {
-    itemIdToEdit = itemId;
-    const modal = document.getElementById('editModal');
-    const itemToEdit = allItems.find(item => item._id === itemId);
-    
-    if (itemToEdit) {
-      document.getElementById('editTitle').value = itemToEdit.title;
-      document.getElementById('editPrice').value = itemToEdit.price;
-      document.getElementById('editCategory').value = itemToEdit.category;
-    }
-    
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-    document.getElementById('editDeleteKey').value = '';
-    document.getElementById('editDeleteKeyError').classList.remove('show');
-    document.getElementById('edit-fields').style.display = 'none';
-    document.getElementById('editSubmitBtn').textContent = 'Continue';
-}
-
-function closeEditModal() {
-    itemIdToEdit = null;
-    const modal = document.getElementById('editModal');
-    modal.classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-document.getElementById('edit-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const editDeleteKey = document.getElementById('editDeleteKey').value.trim();
-    const errorElement = document.getElementById('editDeleteKeyError');
-    const editFields = document.getElementById('edit-fields');
-    const editSubmitBtn = document.getElementById('editSubmitBtn');
-
-    if (editFields.style.display === 'none') {
-        // Step 1: Verify delete key
-        const verificationBtnContent = editSubmitBtn.innerHTML;
-        editSubmitBtn.disabled = true;
-        editSubmitBtn.innerHTML = `<div class="loader"></div> <span>Verifying...</span>`;
-
-        try {
-            const response = await fetch(`${API_URL}/items/${itemIdToEdit}/edit`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'x-api-secret-key': API_SECRET_KEY
-                },
-                body: JSON.stringify({ deleteKey: editDeleteKey, mode: 'verify' })
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Verification failed.');
-            }
-            
-            errorElement.classList.remove('show');
-            editFields.style.display = 'block';
-            editSubmitBtn.textContent = 'Save Changes';
-            editSubmitBtn.disabled = false;
-        } catch (err) {
-            console.error('Verification error:', err);
-            errorElement.textContent = err.message || "Failed to verify key.";
-            errorElement.classList.add('show');
-        } finally {
-            editSubmitBtn.innerHTML = verificationBtnContent;
-            if (editFields.style.display === 'none') editSubmitBtn.disabled = false;
-        }
-    } else {
-        // Step 2: Submit updates
-        const updatedData = {
-            title: document.getElementById('editTitle').value.trim(),
-            price: document.getElementById('editPrice').value.trim(),
-            category: document.getElementById('editCategory').value,
-            deleteKey: editDeleteKey
-        };
-
-        if (updatedData.title.length < 3 || updatedData.price.length === 0) {
-            showNotification('Please fill out all fields.', 'error');
-            return;
-        }
-        
-        const updateBtnContent = editSubmitBtn.innerHTML;
-        editSubmitBtn.disabled = true;
-        editSubmitBtn.innerHTML = `<div class="loader"></div> <span>Saving...</span>`;
-        
-        try {
-            const response = await fetch(`${API_URL}/items/${itemIdToEdit}/edit`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-secret-key': API_SECRET_KEY
-                },
-                body: JSON.stringify(updatedData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `HTTP error ${response.status}`);
-            }
-
-            showNotification('Item updated successfully!', 'success');
-            closeEditModal();
-            loadItems();
-        } catch (err) {
-            console.error('Update error:', err);
-            showNotification(`❌ Update failed: ${err.message}`, 'error');
-        } finally {
-            editSubmitBtn.innerHTML = updateBtnContent;
-            editSubmitBtn.disabled = false;
-        }
-    }
-});
-
-document.getElementById('editModal').addEventListener('click', (e) => { 
-    if (e.target.id === 'editModal') closeEditModal(); 
-});
-
 
 // Report Modal Logic
 function openReportModal(itemId) {
@@ -842,6 +720,96 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
 
 document.getElementById('reportModal').addEventListener('click', (e) => { if (e.target.id === 'reportModal') closeReportModal(); });
 
+// Edit Modal Logic
+function openEditModal(itemId, title, price, category, categoryDescription) {
+    const modal = document.getElementById('editItemModal');
+    const editForm = document.getElementById('edit-item-form');
+    const editFormContent = document.getElementById('edit-form-content');
+    
+    document.getElementById('edit-item-id').value = itemId;
+    document.getElementById('edit-title').value = title;
+    document.getElementById('edit-price').value = price;
+    document.getElementById('edit-category').value = category;
+    document.getElementById('edit-category-description').value = categoryDescription;
+
+    document.getElementById('edit-delete-key').value = '';
+    document.getElementById('editKeyModalError').textContent = '';
+    
+    // Set a flag or a class to indicate the form is in edit mode
+    editForm.dataset.mode = 'edit';
+    editFormContent.style.display = 'block';
+    
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editItemModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+document.getElementById('edit-item-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const itemId = document.getElementById('edit-item-id').value;
+    const deleteKey = document.getElementById('edit-delete-key').value.trim();
+    const title = document.getElementById('edit-title').value.trim();
+    const price = document.getElementById('edit-price').value.trim();
+    const category = document.getElementById('edit-category').value;
+    const categoryDescription = document.getElementById('edit-category-description').value.trim();
+    
+    const errorElement = document.getElementById('editKeyModalError');
+    const submitBtn = document.getElementById('confirmEditBtn');
+    
+    if (deleteKey.length < 6) {
+        errorElement.textContent = 'Please enter a valid key (min 6 characters).';
+        errorElement.classList.add('show');
+        return;
+    } else {
+        errorElement.classList.remove('show');
+    }
+
+    submitBtn.disabled = true;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = `<div class="loader"></div> <span>Saving...</span>`;
+
+    try {
+        const response = await fetch(`https://x-marketplace.onrender.com/items/${itemId}/edit`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-secret-key': API_SECRET_KEY
+            },
+            body: JSON.stringify({ 
+                deleteKey, 
+                title, 
+                price, 
+                category,
+                categoryDescription
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP error ${response.status}`);
+        }
+
+        showNotification("Item updated successfully!", "success");
+        closeEditModal();
+        loadItems();
+
+    } catch (err) {
+        console.error("Edit error:", err);
+        errorElement.textContent = err.message || "Failed to update item.";
+        errorElement.classList.add('show');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Save Changes";
+    }
+});
+
+document.getElementById('editItemModal').addEventListener('click', (e) => { if (e.target.id === 'editItemModal') closeEditModal(); });
 
 // Mobile pop-up hint logic
 function showMobileHint() {
