@@ -124,7 +124,7 @@
     }
 
     // --- Admin Actions ---
-    async function deleteItem(itemId) {
+    window.deleteItem = async function(itemId) {
         if (!confirm('Are you sure you want to delete this item?')) return;
         try {
             const response = await fetch(`${API_URL}/items/${itemId}`, {
