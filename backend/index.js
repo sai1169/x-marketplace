@@ -6,7 +6,6 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
 const axios = require("axios");
-const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,20 +24,10 @@ const corsOptions = {
   optionsSuccessStatus: 204
 };
 
-const MASTER_KEY = "ramatej@1357";
+const MASTER_KEY = process.env.ADMIN_PASSWORD;
 const API_SECRET_KEY = process.env.API_SECRET_KEY;
 
-// --- Rate Limiting Middleware ---
-const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	max: 100,
-	standardHeaders: true,
-	legacyHeaders: false,
-    message: 'Too many requests from this IP, please try again after 15 minutes.'
-});
-
 // --- Middleware ---
-app.use(limiter);
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -235,10 +224,10 @@ app.delete("/items/:id", verifyApiSecret, async (req, res) => {
 app.put("/items/:id", masterKeyAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, price, category } = req.body;
+    const { title, price, category, categoryDescription } = req.body;
 
     const updatedItem = await Item.findByIdAndUpdate(
-      id, { title, price, category }, { new: true }
+      id, { title, price, category, categoryDescription }, { new: true }
     );
 
     if (!updatedItem) {
@@ -255,7 +244,7 @@ app.put("/items/:id", masterKeyAuth, async (req, res) => {
 app.put("/items/:id/edit", verifyApiSecret, async (req, res) => {
     try {
         const { id } = req.params;
-        const { deleteKey, title, price, category, mode } = req.body;
+        const { deleteKey, title, price, category, categoryDescription, mode } = req.body;
         const item = await Item.findById(id);
 
         if (!item) return res.status(404).json({ error: "Item not found" });
@@ -277,7 +266,7 @@ app.put("/items/:id/edit", verifyApiSecret, async (req, res) => {
 
         // Proceed with update
         const updatedItem = await Item.findByIdAndUpdate(
-            id, { title, price, category }, { new: true }
+            id, { title, price, category, categoryDescription }, { new: true }
         );
 
         if (!updatedItem) {
