@@ -131,7 +131,7 @@
                 method: 'DELETE',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'x-api-secret-key': API_SECRET_KEY 
+                    'x-master-key': sessionStorage.getItem('adminKey') 
                 },
                 body: JSON.stringify({ deleteKey: sessionStorage.getItem('adminKey') })
             });

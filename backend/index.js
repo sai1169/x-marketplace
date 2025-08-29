@@ -9,7 +9,7 @@ const axios = require("axios");
 const rateLimit = require('express-rate-limit');
 
 const app = express();
-const PORT = process.env.env || 3000;
+const PORT = process.env.PORT || 3000;
 
 // --- Config ---
 const allowedOrigins = [
