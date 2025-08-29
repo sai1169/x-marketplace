@@ -193,10 +193,19 @@ function renderItems(items) {
     
     const categoryDescriptionHtml = item.categoryDescription ? `<p class="category-description">${item.categoryDescription}</p>` : '';
     
+    // Safely stringify and pass data to openEditModal
+    const itemData = JSON.stringify({
+        id: item._id,
+        title: item.title,
+        price: item.price,
+        category: item.category,
+        categoryDescription: item.categoryDescription || ''
+    }).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
     return `<div class="item-card" style="animation-delay: ${index * 0.1}s">
       ${isNew ? '<div class="new-badge">NEW</div>' : ''}
       <div class="card-actions-top">
-        <button class="edit-btn" onclick="openEditModal('${item._id}', '${item.title}', '${item.price}', '${item.category}', '${item.categoryDescription || ''}')" aria-label="Edit Item">
+        <button class="edit-btn" onclick='openEditModalFromMain(${itemData})' aria-label="Edit Item">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-line"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </button>
         <button class="report-btn" onclick="openReportModal('${item._id}')" aria-label="Report Item">
@@ -721,16 +730,16 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
 document.getElementById('reportModal').addEventListener('click', (e) => { if (e.target.id === 'reportModal') closeReportModal(); });
 
 // Edit Modal Logic
-function openEditModal(itemId, title, price, category, categoryDescription) {
+function openEditModalFromMain(itemData) {
     const modal = document.getElementById('editItemModal');
     const editForm = document.getElementById('edit-item-form');
     const editFormContent = document.getElementById('edit-form-content');
     
-    document.getElementById('edit-item-id').value = itemId;
-    document.getElementById('edit-title').value = title;
-    document.getElementById('edit-price').value = price;
-    document.getElementById('edit-category').value = category;
-    document.getElementById('edit-category-description').value = categoryDescription;
+    document.getElementById('edit-item-id').value = itemData.id;
+    document.getElementById('edit-title').value = itemData.title;
+    document.getElementById('edit-price').value = itemData.price;
+    document.getElementById('edit-category').value = itemData.category;
+    document.getElementById('edit-category-description').value = itemData.categoryDescription;
 
     document.getElementById('edit-delete-key').value = '';
     document.getElementById('editKeyModalError').textContent = '';

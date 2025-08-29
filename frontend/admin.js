@@ -14,7 +14,7 @@
     const editItemForm = document.getElementById('edit-item-form');
     const editItemId = document.getElementById('edit-item-id');
     const editTitle = document.getElementById('edit-title');
-    const editPrice = document = document.getElementById('edit-price');
+    const editPrice = document.getElementById('edit-price');
     const editCategory = document.getElementById('edit-category');
     const editCategoryDescription = document.getElementById('edit-category-description');
 
