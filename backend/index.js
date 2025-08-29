@@ -177,7 +177,11 @@ app.post("/items", verifyApiSecret, upload.array("images", 5), verifyRecaptcha, 
     res.status(201).json({ message: "Item saved", item: newItem });
   } catch (error) {
     console.error("❌ Upload error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    if (error.message && error.message.includes('Unsupported file format')) {
+        res.status(400).json({ error: "image format not correct" });
+    } else {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 });
 
